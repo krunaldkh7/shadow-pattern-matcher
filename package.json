@@ -1,0 +1,40 @@
+{
+  "name": "shadow-pattern-matcher",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "dependencies": {
+    "@expo-google-fonts/urbanist": "0.4.2",
+    "@expo/vector-icons": "15.1.1",
+    "@react-three/fiber": "9.8.2",
+    "expo": "58.0.19",
+    "expo-asset": "58.0.18",
+    "expo-file-system": "58.0.11",
+    "expo-font": "58.0.10",
+    "expo-gl": "58.0.3",
+    "expo-haptics": "58.0.7",
+    "expo-status-bar": "58.0.4",
+    "expo-system-ui": "58.0.6",
+    "react": "19.3.0",
+    "react-native": "0.88.0",
+    "react-native-gesture-handler": "3.3.0",
+    "react-native-reanimated": "4.7.1",
+    "react-native-safe-area-context": "5.10.1",
+    "react-native-worklets": "0.13.0",
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/three": "0.186.0",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3"
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "typecheck": "tsc --noEmit",
+    "verify": "tsx scripts/verifyMath.ts && tsx scripts/verifyGeometry.ts"
+  },
+  "private": true
+}

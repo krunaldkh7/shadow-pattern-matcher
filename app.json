@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "Shadow Pattern Matcher",
+    "slug": "shadow-pattern-matcher",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yourstudio.shadowpatternmatcher"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1b130d",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.yourstudio.shadowpatternmatcher",
+      "versionCode": 1
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-asset",
+      "expo-font"
+    ],
+    "backgroundColor": "#1b130d"
+  }
+}
