@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../game/constants';
 import { GameEngine } from '../../game/GameEngine';
+import { progress } from '../../game/progress';
 import { useGameUI } from '../../hooks/useGameUI';
 import { useRotationGestures } from '../../hooks/useRotationGestures';
 import { GameScene } from '../../three/GameScene';
@@ -11,18 +13,35 @@ import { ControlBar } from '../components/ControlBar';
 import { DragHint } from '../components/DragHint';
 import { Header } from '../components/Header';
 import { LevelCompleteOverlay } from '../components/LevelCompleteOverlay';
+import { PauseOverlay } from '../components/PauseOverlay';
 
 /**
  * Composition root for one play session.
  * The 3D canvas fills the screen and owns all touch input; the HUD floats on
  * top with pointerEvents="box-none" so only its buttons intercept touches.
  */
-export function GameScreen() {
-  const [engine] = useState(() => new GameEngine(0));
+export function GameScreen({ startLevel }: { startLevel: number }) {
+  const [engine] = useState(() => new GameEngine(startLevel));
   const ui = useGameUI(engine);
   const gesture = useRotationGestures(engine);
   const insets = useSafeAreaInsets();
+  const [paused, setPaused] = useState(false);
   const playing = ui.status === 'playing';
+  const levelIndex = ui.levelNumber - 1;
+
+  // Save the result once per solve (status flips to 'success' at the snap).
+  useEffect(() => {
+    if (ui.status === 'success') progress.recordWin(levelIndex, ui.stars, ui.solveSeconds);
+  }, [ui.status, levelIndex, ui.stars, ui.solveSeconds]);
+
+  const pause = () => {
+    engine.pause();
+    setPaused(true);
+  };
+  const resume = () => {
+    engine.resume();
+    setPaused(false);
+  };
 
   return (
     <View style={styles.root}>
@@ -39,6 +58,7 @@ export function GameScreen() {
           solved={!playing}
           hintDisabled={!playing}
           onLightbulb={() => engine.autoRotateHint()}
+          onPause={pause}
         />
       </View>
 
@@ -67,8 +87,23 @@ export function GameScreen() {
           hintsUsed={ui.hintsUsed}
           solveSeconds={ui.solveSeconds}
           bottomInset={insets.bottom}
+          isLast={engine.isLastLevel}
           onNext={() => engine.nextLevel()}
           onReplay={() => engine.replayLevel()}
+          onMenu={() => router.replace('/levels')}
+        />
+      )}
+
+      {paused && (
+        <PauseOverlay
+          levelNumber={ui.levelNumber}
+          onResume={resume}
+          onRestart={() => {
+            engine.replayLevel();
+            setPaused(false);
+          }}
+          onLevels={() => router.replace('/levels')}
+          onSettings={() => router.push('/settings')}
         />
       )}
     </View>

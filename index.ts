@@ -1,8 +1,4 @@
-import { registerRootComponent } from 'expo';
-
-import App from './App';
-
-// registerRootComponent calls AppRegistry.registerComponent('main', () => App);
-// It also ensures that whether you load the app in Expo Go or in a native build,
-// the environment is set up appropriately
-registerRootComponent(App);
+// Order matters: patch globals and install the crash screen before any route loads.
+import './src/polyfills';
+import './src/ui/CrashGuard';
+import 'expo-router/entry';

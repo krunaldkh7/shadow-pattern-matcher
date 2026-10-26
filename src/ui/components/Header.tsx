@@ -8,6 +8,7 @@ interface Props {
   solved: boolean;
   onLightbulb: () => void;
   hintDisabled: boolean;
+  onPause: () => void;
 }
 
 const DOTS = 20;
@@ -18,14 +19,15 @@ const DOTS = 20;
  * The meter is a row of 20 dots — the same dots that draw the target outline —
  * which fill with ink as the shadow lines up (one dot per 5%).
  */
-export function Header({ levelNumber, accuracy, solved, onLightbulb, hintDisabled }: Props) {
+export function Header({ levelNumber, accuracy, solved, onLightbulb, hintDisabled, onPause }: Props) {
   const filled = Math.round(accuracy / (100 / DOTS));
 
   return (
     <View style={styles.row}>
-      <Text style={styles.piece} accessibilityLabel={`Level ${levelNumber}`}>
-        No. {levelNumber}
-      </Text>
+      <View style={styles.piece}>
+        <IconButton icon="pause" size={44} onPress={onPause} accessibilityLabel={`Pause level ${levelNumber}`} />
+        <Text style={styles.pieceNumber}>No. {levelNumber}</Text>
+      </View>
 
       <View style={styles.meter} accessibilityLabel={`${accuracy} percent match`}>
         <Text style={styles.reading}>
@@ -52,7 +54,8 @@ export function Header({ levelNumber, accuracy, solved, onLightbulb, hintDisable
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20 },
-  piece: { width: 70, fontFamily: FONT.numeral, fontSize: 22, color: INK.ink },
+  piece: { width: 70, alignItems: 'flex-start', gap: 4 },
+  pieceNumber: { fontFamily: FONT.numeral, fontSize: 16, color: INK.ink },
   meter: { flex: 1, alignItems: 'center' },
   reading: { color: INK.ink },
   value: { fontFamily: FONT.numeral, fontSize: 44, lineHeight: 50, color: INK.ink, fontVariant: ['tabular-nums'] },

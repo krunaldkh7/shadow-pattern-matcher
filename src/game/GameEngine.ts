@@ -11,7 +11,7 @@ import {
   UNDO_DURATION,
   WARM_TICKS,
 } from './constants';
-import { generateLevel, type LevelData } from './levels';
+import { generateLevel, LEVEL_COUNT, type LevelData } from './levels';
 import { computeAccuracy, easeInOutCubic, easeOutCubic, projectWire } from './shadowMath';
 import { haptics } from '../utils/haptics';
 
@@ -78,6 +78,7 @@ export class GameEngine {
   private ghostUntil = 0;
   private successAt = 0;
   private startedAt = 0;
+  private pausedAt = 0;
   private solvedAt = 0;
   private warmTick = 0;
   private lastUIEmit = 0;
@@ -104,6 +105,7 @@ export class GameEngine {
     this.ghostUntil = 0;
     this.successAt = 0;
     this.startedAt = Date.now();
+    this.pausedAt = 0;
     this.solvedAt = 0;
     this.warmTick = 0;
     this.status = 'playing';
@@ -111,8 +113,23 @@ export class GameEngine {
     this.emit(true);
   }
 
+  get isLastLevel() {
+    return this.level.index >= LEVEL_COUNT - 1;
+  }
+
   nextLevel() {
-    this.loadLevel(this.level.index + 1);
+    if (!this.isLastLevel) this.loadLevel(this.level.index + 1);
+  }
+
+  /** Pause menu open: stop the solve clock (resume shifts the start forward). */
+  pause() {
+    if (!this.pausedAt) this.pausedAt = Date.now();
+  }
+
+  resume() {
+    if (!this.pausedAt) return;
+    this.startedAt += Date.now() - this.pausedAt;
+    this.pausedAt = 0;
   }
 
   replayLevel() {

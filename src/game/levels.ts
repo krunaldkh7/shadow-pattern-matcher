@@ -58,12 +58,13 @@ function randomUnitVector(rand: () => number) {
   return new THREE.Vector3(s * Math.cos(th), s * Math.sin(th), u);
 }
 
-export const LEVEL_COUNT_PER_CYCLE = SHAPES.length;
+/** One level per shape — no repeats. */
+export const LEVEL_COUNT = SHAPES.length;
 
 export function generateLevel(index: number): LevelData {
-  const shape = SHAPES[index % SHAPES.length];
+  const shape = SHAPES[Math.min(index, LEVEL_COUNT - 1)];
   const rand = mulberry32(0x5eed + index * 7919);
-  const difficulty = Math.min(1, index / 24);
+  const difficulty = Math.min(1, index / (LEVEL_COUNT - 1));
 
   // Depth amplitude grows with difficulty → the wire looks more scrambled.
   const depthAmp = 0.32 + 0.3 * difficulty;

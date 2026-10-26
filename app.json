@@ -26,8 +26,29 @@
     },
     "plugins": [
       "expo-asset",
-      "expo-font"
+      "expo-font",
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160,
+          "backgroundColor": "#d6c0a4"
+        }
+      ]
     ],
-    "backgroundColor": "#1b130d"
+    "backgroundColor": "#1b130d",
+    "scheme": "shadowpattern",
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "b9906c95-fae9-4e0e-ae79-065c6be972df"
+      }
+    },
+    "owner": "krunaldkh7"
   }
 }

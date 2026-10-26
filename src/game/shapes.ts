@@ -7,6 +7,8 @@
  * the wall AND the 3D gold wire are both generated from them (see wireBuilder).
  */
 
+import { buildExtendedShapes } from './shapeLibrary';
+
 export type Point2 = [number, number];
 
 export interface Stroke {
@@ -85,7 +87,7 @@ function umbrellaStrokes(): Stroke[] {
   ];
 }
 
-export const SHAPES: ShapeDef[] = [
+const BASE_SHAPES: ShapeDef[] = [
   {
     id: 'cat',
     name: 'Cat',
@@ -187,6 +189,9 @@ export const SHAPES: ShapeDef[] = [
   },
   { id: 'umbrella', name: 'Umbrella', strokes: umbrellaStrokes() },
 ];
+
+/** Every level has its own shape: the hand-tuned originals first, then the extended catalogue. */
+export const SHAPES: ShapeDef[] = [...BASE_SHAPES, ...buildExtendedShapes()];
 
 /** Resample a polyline at a fixed arc-length spacing so wire + dots are even. */
 export function resampleStroke(stroke: Stroke, spacing: number): Point2[] {

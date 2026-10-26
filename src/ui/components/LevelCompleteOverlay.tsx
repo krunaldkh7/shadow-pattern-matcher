@@ -10,8 +10,11 @@ interface Props {
   hintsUsed: number;
   solveSeconds: number;
   bottomInset: number;
+  /** Final level: the primary button finishes the run instead. */
+  isLast: boolean;
   onNext: () => void;
   onReplay: () => void;
+  onMenu: () => void;
 }
 
 /**
@@ -41,8 +44,10 @@ export function LevelCompleteOverlay({
   hintsUsed,
   solveSeconds,
   bottomInset,
+  isLast,
   onNext,
   onReplay,
+  onMenu,
 }: Props) {
   const hintLine = hintsUsed === 0 ? 'No hints used' : hintsUsed === 1 ? '1 hint used' : `${hintsUsed} hints used`;
 
@@ -78,14 +83,19 @@ export function LevelCompleteOverlay({
 
         <Pressable
           accessibilityRole="button"
-          onPress={onNext}
+          onPress={isLast ? onMenu : onNext}
           style={({ pressed }) => [styles.primary, pressed && styles.primaryPressed]}
         >
-          <Text style={styles.primaryText}>Next level</Text>
+          <Text style={styles.primaryText}>{isLast ? 'Gallery complete — back to menu' : 'Next level'}</Text>
         </Pressable>
-        <Pressable accessibilityRole="button" onPress={onReplay} hitSlop={8} style={styles.secondary}>
-          <Text style={styles.secondaryText}>Play this one again</Text>
-        </Pressable>
+        <View style={styles.links}>
+          <Pressable accessibilityRole="button" onPress={onReplay} hitSlop={8} style={styles.secondary}>
+            <Text style={styles.secondaryText}>Play again</Text>
+          </Pressable>
+          <Pressable accessibilityRole="button" onPress={onMenu} hitSlop={8} style={styles.secondary}>
+            <Text style={styles.secondaryText}>All levels</Text>
+          </Pressable>
+        </View>
       </Animated.View>
     </View>
   );
@@ -137,6 +147,7 @@ const styles = StyleSheet.create({
   primary: { height: 50, borderRadius: 3, backgroundColor: INK.ink, alignItems: 'center', justifyContent: 'center' },
   primaryPressed: { backgroundColor: '#2c2018' },
   primaryText: { fontFamily: FONT.label, fontSize: 17, color: INK.paper },
+  links: { flexDirection: 'row', justifyContent: 'space-around' },
   secondary: { height: 42, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
   secondaryText: { fontFamily: FONT.body, fontSize: 15, color: INK.ink, textDecorationLine: 'underline' },
 });
