@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { LIGHT_POS, OBJECT_CENTER, SHADOW_CENTER, SILHOUETTE_SCALE, WALL_Z } from './constants';
-import { SHAPES, resampleStroke, type ShapeDef } from './shapes';
+import { resampleStroke, type ShapeDef } from './shapes';
+import { LEVEL_SHAPES } from './tiers';
 import { computeAccuracy, projectWire } from './shadowMath';
 
 /**
@@ -59,10 +60,10 @@ function randomUnitVector(rand: () => number) {
 }
 
 /** One level per shape — no repeats. */
-export const LEVEL_COUNT = SHAPES.length;
+export const LEVEL_COUNT = LEVEL_SHAPES.length;
 
 export function generateLevel(index: number): LevelData {
-  const shape = SHAPES[Math.min(index, LEVEL_COUNT - 1)];
+  const shape = LEVEL_SHAPES[Math.min(index, LEVEL_COUNT - 1)];
   const rand = mulberry32(0x5eed + index * 7919);
   const difficulty = Math.min(1, index / (LEVEL_COUNT - 1));
 

@@ -79,6 +79,13 @@ export const progress = {
   },
 };
 
+/** TESTING ONLY: opens every level without touching saved progress. Set back to false before release. */
+export const UNLOCK_ALL_LEVELS = true;
+
+export function isLevelUnlocked(s: ProgressState, index: number) {
+  return UNLOCK_ALL_LEVELS || index <= s.unlocked;
+}
+
 export function totalStars(s: ProgressState) {
   return Object.values(s.levels).reduce((sum, l) => sum + l.stars, 0);
 }

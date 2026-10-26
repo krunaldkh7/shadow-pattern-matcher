@@ -14,7 +14,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { LEVEL_COUNT } from '../game/levels';
 import { continueIndex, progress, totalStars, useProgress } from '../game/progress';
-import { SHAPES } from '../game/shapes';
+import { LEVEL_SHAPES, tierOf } from '../game/tiers';
 import { MenuButton, MenuScreen } from '../ui/components/MenuKit';
 import { buildDots, WireDots } from '../ui/components/WireDots';
 import { intro } from '../ui/introState';
@@ -31,7 +31,7 @@ export default function Home() {
   const stars = totalStars(state);
   const record = state.levels[next];
 
-  const dots = useMemo(() => buildDots(SHAPES[next], 0.11, 11 + next), [next]);
+  const dots = useMemo(() => buildDots(LEVEL_SHAPES[next], 0.11, 11 + next), [next]);
   const spin = useSharedValue(0);
   const breathe = useSharedValue(0);
 
@@ -91,9 +91,11 @@ export default function Home() {
           <WireDots dots={dots} yaw={yaw} pitch={pitch} glow={glow} size={78} dotSize={8} />
         </Pressable>
         <View style={styles.teaserLabel} pointerEvents="none">
-          <Text style={styles.teaserSmall}>{fresh ? 'Your first piece' : 'Next piece'}</Text>
+          <Text style={styles.teaserSmall}>
+            {fresh ? 'Your first piece' : 'Next piece'} · <Text style={{ color: tierOf(next).color }}>{tierOf(next).name}</Text>
+          </Text>
           <Text style={styles.teaserTitle}>
-            No. {next + 1} · {record ? SHAPES[next].name : 'Can you see it?'}
+            No. {next + 1} · {record ? LEVEL_SHAPES[next].name : 'Can you see it?'}
           </Text>
         </View>
       </Animated.View>

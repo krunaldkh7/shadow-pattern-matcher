@@ -35,6 +35,14 @@
           "imageWidth": 160,
           "backgroundColor": "#d6c0a4"
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraProguardRules": "# expo-gl's GLView extends TextureView (not ExpoView), so Expo's keep rules miss its constructor.\n-keep class expo.modules.gl.** { *; }"
+          }
+        }
       ]
     ],
     "backgroundColor": "#1b130d",
