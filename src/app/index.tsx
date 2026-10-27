@@ -13,11 +13,12 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { LEVEL_COUNT } from '../game/levels';
-import { continueIndex, progress, totalStars, useProgress } from '../game/progress';
+import { continueIndex, totalStars, useProgress } from '../game/progress';
 import { LEVEL_SHAPES, tierOf } from '../game/tiers';
 import { MenuButton, MenuScreen } from '../ui/components/MenuKit';
 import { buildDots, WireDots } from '../ui/components/WireDots';
 import { intro } from '../ui/introState';
+import { openLevel } from '../ui/openLevel';
 import { FONT, INK } from '../ui/theme';
 
 /** Each full turn, the teaser lines up (yaw = 0) for a brief "glimpse". */
@@ -58,14 +59,7 @@ export default function Home() {
 
   if (intro.shouldShow()) return <Redirect href="/intro" />;
 
-  const play = () => {
-    if (!state.seenTutorial) {
-      progress.markTutorialSeen();
-      router.push({ pathname: '/how-to-play', params: { then: String(next) } });
-      return;
-    }
-    router.push(`/play/${next}`);
-  };
+  const resume = () => openLevel(next);
 
   return (
     <MenuScreen back={false} scroll={false}>
@@ -87,7 +81,7 @@ export default function Home() {
 
       {/* Teaser: the next piece, scrambled, turning on its own. */}
       <Animated.View entering={FadeInDown.duration(500).delay(120)} style={styles.teaser}>
-        <Pressable accessibilityRole="button" accessibilityLabel={`Play level ${next + 1}`} onPress={play} style={styles.teaserTap}>
+        <Pressable accessibilityRole="button" accessibilityLabel={`Play level ${next + 1}`} onPress={resume} style={styles.teaserTap}>
           <WireDots dots={dots} yaw={yaw} pitch={pitch} glow={glow} size={78} dotSize={8} />
         </Pressable>
         <View style={styles.teaserLabel} pointerEvents="none">
@@ -122,14 +116,19 @@ export default function Home() {
           <MenuButton
             variant="primary"
             icon="play"
-            label={fresh ? 'Start playing' : 'Continue'}
-            sublabel={`Level ${next + 1}`}
-            onPress={play}
+            label="Play"
+            sublabel="Choose a gallery"
+            onPress={() => router.push('/tiers')}
           />
         </Animated.View>
         <View style={styles.row}>
           <View style={{ flex: 1 }}>
-            <MenuButton icon="grid-outline" label="Levels" onPress={() => router.push('/levels')} />
+            <MenuButton
+              icon="arrow-forward-circle-outline"
+              label={fresh ? 'Level 1' : 'Continue'}
+              sublabel={fresh ? undefined : `Level ${next + 1}`}
+              onPress={resume}
+            />
           </View>
           <View style={{ flex: 1 }}>
             <MenuButton icon="help-circle-outline" label="How to play" onPress={() => router.push('/how-to-play')} />

@@ -9,7 +9,7 @@ export default function Play() {
   const index = Number(level);
 
   if (!Number.isInteger(index) || index < 0 || index >= LEVEL_COUNT || !isLevelUnlocked(state, index)) {
-    return <Redirect href="/levels" />;
+    return <Redirect href="/tiers" />;
   }
   // Remount the engine when the route's level changes.
   return <GameScreen key={index} startLevel={index} />;

@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../game/constants';
 import { GameEngine } from '../../game/GameEngine';
 import { progress } from '../../game/progress';
+import { tierOf } from '../../game/tiers';
 import { useGameUI } from '../../hooks/useGameUI';
 import { useRotationGestures } from '../../hooks/useRotationGestures';
 import { GameScene } from '../../three/GameScene';
@@ -90,7 +91,7 @@ export function GameScreen({ startLevel }: { startLevel: number }) {
           isLast={engine.isLastLevel}
           onNext={() => engine.nextLevel()}
           onReplay={() => engine.replayLevel()}
-          onMenu={() => router.replace('/levels')}
+          onMenu={() => router.dismissTo(`/tier/${tierOf(levelIndex).id}`)}
         />
       )}
 
@@ -102,7 +103,7 @@ export function GameScreen({ startLevel }: { startLevel: number }) {
             engine.replayLevel();
             setPaused(false);
           }}
-          onLevels={() => router.replace('/levels')}
+          onLevels={() => router.dismissTo(`/tier/${tierOf(levelIndex).id}`)}
           onSettings={() => router.push('/settings')}
         />
       )}

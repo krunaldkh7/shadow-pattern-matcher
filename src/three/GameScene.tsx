@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber/native';
+import { View } from 'react-native';
 import * as THREE from 'three';
 import {
   CAMERA_FOV,
@@ -104,16 +105,22 @@ function SceneContents({ engine }: { engine: GameEngine }) {
  * GLView, which sits on OpenGL ES on Android and on Apple's GL→Metal layer
  * on iOS. `flat` disables tone mapping so the warm palette renders exactly
  * as specified.
+ *
+ * The canvas never takes touches: R3F's native Canvas installs a PanResponder
+ * that claims every touch, and on Android a granted JS responder can cancel
+ * the gesture-handler pan mid-drag. All input goes through GestureDetector.
  */
 export function GameScene({ engine }: { engine: GameEngine }) {
   return (
-    <Canvas
-      flat
-      camera={{ position: CAMERA_POS, fov: CAMERA_FOV, near: 0.1, far: 80 }}
-      gl={{ antialias: true }}
-      style={{ flex: 1 }}
-    >
-      <SceneContents engine={engine} />
-    </Canvas>
+    <View style={{ flex: 1 }} pointerEvents="none">
+      <Canvas
+        flat
+        camera={{ position: CAMERA_POS, fov: CAMERA_FOV, near: 0.1, far: 80 }}
+        gl={{ antialias: true }}
+        style={{ flex: 1 }}
+      >
+        <SceneContents engine={engine} />
+      </Canvas>
+    </View>
   );
 }
