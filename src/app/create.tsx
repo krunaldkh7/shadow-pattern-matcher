@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { track } from '../analytics/analytics';
 import { customLevels } from '../game/customLevels';
 import type { Stroke } from '../game/shapes';
 import { DrawingPad } from '../ui/components/DrawingPad';
@@ -33,6 +34,7 @@ export default function Create() {
       return;
     }
     const level = customLevels.add(name, strokes);
+    track('custom_level_created', { strokes: strokes.length });
     router.replace(`/play/custom/${level.id}`);
   };
 

@@ -1,6 +1,6 @@
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { useSyncExternalStore } from 'react';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import { progress } from '../game/progress';
 import { adConfig, fetchAdConfig, type AdConfig } from './adConfig';
 
@@ -497,10 +497,29 @@ export function nativeModule() {
 // ──────────────────────────────── startup ────────────────────────────────
 
 /**
+ * iOS App Tracking Transparency: ask once, before the first ad request, so
+ * AdMob can personalise ads when the player allows it. Declining (or any
+ * failure) just means non-personalised ads.
+ */
+async function askTrackingPermission() {
+  if (Platform.OS !== 'ios') return;
+  try {
+    const att = await import('expo-tracking-transparency');
+    if (!att.isAvailable()) return;
+    const current = await att.getTrackingPermissionsAsync();
+    if (current.status === 'undetermined') await att.requestTrackingPermissionsAsync();
+  } catch {
+    // Not available in this build: carry on without the prompt.
+  }
+}
+
+/**
  * Call once at app start. Fetches the remote config; if ads are on, starts the
  * SDK and preloads the full-screen formats. Never throws.
  */
 export async function startAds() {
+  // Store screenshots are built with EXPO_PUBLIC_SCREENSHOTS=1: no ads, no tracking prompt.
+  if (process.env.EXPO_PUBLIC_SCREENSHOTS === '1') return;
   const config = await fetchAdConfig();
   const m = ads();
   log('config', config.showAds ? 'ads on' : 'ads off', m ? '' : '(no native ads module — Expo Go?)');
@@ -508,6 +527,7 @@ export async function startAds() {
     adConfig.set({ ...config, showAds: false });
     return;
   }
+  await askTrackingPermission();
   try {
     await m.default().initialize();
     log('SDK initialized');

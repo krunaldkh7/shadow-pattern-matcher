@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
 import { showInterstitialForHint, useInterstitialAvailable } from '../ads/googleAds';
+import { track } from '../analytics/analytics';
 import type { GameEngine, UISnapshot } from '../game/GameEngine';
 
 /**
@@ -20,15 +21,21 @@ export function useHintAccess(engine: GameEngine, ui: UISnapshot) {
   const bulbMode = modeFor(ui.bulbsLeft);
   const ghostMode = modeFor(ui.ghostsLeft);
 
-  const request = async (mode: HintMode, use: (paidWithAd: boolean) => void) => {
+  const request = async (kind: 'bulb' | 'ghost', mode: HintMode, use: (paidWithAd: boolean) => void) => {
     if (ui.status !== 'playing' || mode === 'none' || busy) return;
-    if (mode === 'free') return use(false);
+    if (mode === 'free') {
+      track('hint_used', { kind, paid: false });
+      return use(false);
+    }
     setBusy(true);
     engine.pause();
     const result = await showInterstitialForHint();
     engine.resume();
     setBusy(false);
-    if (result === 'earned') use(true);
+    if (result === 'earned') {
+      track('hint_used', { kind, paid: true });
+      use(true);
+    }
     else if (result === 'unavailable') {
       Alert.alert('No ad right now', 'An ad couldn’t be loaded for this hint. Check your connection and try again in a moment.');
     }
@@ -39,7 +46,7 @@ export function useHintAccess(engine: GameEngine, ui: UISnapshot) {
     ghostMode,
     /** True while the hint's ad is loading or playing. */
     busy,
-    lightbulb: () => request(bulbMode, (paid) => engine.autoRotateHint(paid)),
-    ghost: () => request(ghostMode, (paid) => engine.showGhost(paid)),
+    lightbulb: () => request('bulb', bulbMode, (paid) => engine.autoRotateHint(paid)),
+    ghost: () => request('ghost', ghostMode, (paid) => engine.showGhost(paid)),
   };
 }

@@ -7,9 +7,14 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.yourstudio.shadowpatternmatcher",
-      "appleTeamId": "F7X54G99TU"
+      "supportsTablet": false,
+      "bundleIdentifier": "com.krunal.shadowpattern",
+      "appleTeamId": "F7X54G99TU",
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "buildNumber": "1",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -19,8 +24,9 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.yourstudio.shadowpatternmatcher",
-      "versionCode": 1
+      "package": "com.krunal.shadowpattern",
+      "versionCode": 1,
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -42,14 +48,29 @@
         {
           "android": {
             "extraProguardRules": "# expo-gl's GLView extends TextureView (not ExpoView), so Expo's keep rules miss its constructor.\n-keep class expo.modules.gl.** { *; }\n# Room builds databases by reflection (e.g. WorkManager's WorkDatabase_Impl, pulled in by Google Mobile Ads).\n-keep class * extends androidx.room.RoomDatabase { <init>(); }"
+          },
+          "ios": {
+            "useFrameworks": "dynamic"
           }
         }
       ],
       [
         "react-native-google-mobile-ads",
         {
-          "androidAppId": "ca-app-pub-3940256099942544~3347511713",
-          "iosAppId": "ca-app-pub-3940256099942544~1458002511"
+          "androidAppId": "ca-app-pub-3792779328473568~1138545515",
+          "iosAppId": "ca-app-pub-3792779328473568~6037976418",
+          "userTrackingUsageDescription": "This lets us show you ads that are more relevant to you. The game works the same either way.",
+          "skAdNetworkItems": [
+            "cstr6suwn9.skadnetwork"
+          ]
+        }
+      ],
+      "@react-native-firebase/app",
+      "@react-native-firebase/analytics",
+      [
+        "expo-tracking-transparency",
+        {
+          "userTrackingPermission": "This lets us show you ads that are more relevant to you. The game works the same either way."
         }
       ]
     ],
@@ -64,7 +85,13 @@
       "eas": {
         "projectId": "b9906c95-fae9-4e0e-ae79-065c6be972df"
       },
-      "adsConfigUrl": "https://raw.githubusercontent.com/krunaldkh7/shadow-pattern-matcher-config/main/ads.json"
+      "adsConfigUrl": "https://raw.githubusercontent.com/krunaldkh7/shadow-pattern-matcher-config/main/ads.json",
+      "firebase": {
+        "apiKey": "AIzaSyAQOsmXZ6fbnIeWBHLpSyVHep5JWZRupfI",
+        "authDomain": "shadow-pattern.firebaseapp.com",
+        "projectId": "shadow-pattern",
+        "appId": "1:438861747521:web:ca42ab57d0b3426e793dc0"
+      }
     },
     "owner": "krunaldkh7"
   }

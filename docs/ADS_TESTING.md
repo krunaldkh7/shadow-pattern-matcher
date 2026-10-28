@@ -23,6 +23,7 @@ How every ad in **Shadow Pattern Matcher** behaves, where to find it, and how to
 |---|---|---|---|
 | 1 | Banner | Bottom of every menu screen **and** the game screen | Always, once loaded |
 | 2 | Interstitial (taps) | Any screen except the game screen | After a random 6–12 taps |
+| 2b | Interstitial (levels) | Game screen, on **Next level** | After every 3 solved levels |
 | 3 | Interstitial (paid hint) | Game screen, both hint buttons | Only after a button's 3 free uses are gone, when the player taps |
 | 3b | Rewarded (level skip) | Game screen, **Skip** button | When the player chooses to skip a level |
 | 4 | Rewarded interstitial | "Level solved" card | After a solve where bulbs were spent; 5-second countdown first |
@@ -62,6 +63,8 @@ How every ad in **Shadow Pattern Matcher** behaves, where to find it, and how to
 4. Edge case: tap level tiles repeatedly to enter levels. An ad must never appear on top of a running level.
 
 Config: `interstitial_taps_min`, `interstitial_taps_max` (both `0` = off).
+
+**Every 3 levels:** solving 3 levels and tapping **Next level** on the third shows an interstitial before the next level opens. Only "Next level" counts; leaving through "All levels" or the pause menu doesn't. Config: `interstitial_every_n_levels` (`0` = off).
 
 ## 3. Paid hints (interstitial) and Level skip (rewarded)
 

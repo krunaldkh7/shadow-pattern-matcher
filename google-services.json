@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "438861747521",
+    "project_id": "shadow-pattern",
+    "storage_bucket": "shadow-pattern.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:438861747521:android:5d5275e0f773d0bc793dc0",
+        "android_client_info": {
+          "package_name": "com.krunal.shadowpattern"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACWN1CyhFkMp7zDiPuSMN6gtDPJef8AKU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

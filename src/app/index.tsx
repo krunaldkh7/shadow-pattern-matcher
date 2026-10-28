@@ -13,7 +13,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { LEVEL_COUNT } from '../game/levels';
-import { continueIndex, totalStars, useProgress } from '../game/progress';
+import { continueIndex, totalPoints, totalStars, useProgress } from '../game/progress';
 import { LEVEL_SHAPES, tierOf } from '../game/tiers';
 import { MenuButton, MenuScreen } from '../ui/components/MenuKit';
 import { buildDots, WireDots } from '../ui/components/WireDots';
@@ -68,15 +68,26 @@ export default function Home() {
           <Text style={styles.kicker}>A gallery of light</Text>
           <Text style={styles.title}>Shadow Pattern{'\n'}Matcher</Text>
         </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Settings"
-          hitSlop={10}
-          onPress={() => router.push('/settings')}
-          style={({ pressed }) => [styles.iconRing, pressed && styles.pressed]}
-        >
-          <Ionicons name="settings-outline" size={20} color={INK.ink} />
-        </Pressable>
+        <View style={styles.headerIcons}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Leaderboard"
+            hitSlop={10}
+            onPress={() => router.push('/leaderboard')}
+            style={({ pressed }) => [styles.iconRing, pressed && styles.pressed]}
+          >
+            <Ionicons name="trophy-outline" size={20} color={INK.ink} />
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Settings"
+            hitSlop={10}
+            onPress={() => router.push('/settings')}
+            style={({ pressed }) => [styles.iconRing, pressed && styles.pressed]}
+          >
+            <Ionicons name="settings-outline" size={20} color={INK.ink} />
+          </Pressable>
+        </View>
       </Animated.View>
 
       {/* Teaser: the next piece, scrambled, turning on its own. */}
@@ -103,6 +114,10 @@ export default function Home() {
             <Ionicons name="bulb" size={15} color={INK.brass} />
             <Text style={styles.progressText}>
               <Text style={styles.progressStrong}>{stars}</Text> / {LEVEL_COUNT * 3}
+            </Text>
+            <Ionicons name="trophy" size={14} color={INK.brass} style={{ marginLeft: 8 }} />
+            <Text style={styles.progressText}>
+              <Text style={styles.progressStrong}>{totalPoints(state).toLocaleString()}</Text> pts
             </Text>
           </View>
         </View>
@@ -144,6 +159,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 8 },
   kicker: { fontFamily: FONT.bodyItalic, fontSize: 15, color: INK.inkSoft },
   title: { fontFamily: FONT.numeral, fontSize: 34, lineHeight: 37, letterSpacing: -0.6, color: INK.ink, marginTop: 4 },
+  headerIcons: { flexDirection: 'row', gap: 10 },
   iconRing: {
     width: 44,
     height: 44,

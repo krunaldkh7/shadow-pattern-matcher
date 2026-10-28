@@ -23,7 +23,7 @@ npx eas-cli@latest build -p android --profile preview
 
 When it finishes, EAS shows a download link and a QR code for the `.apk`. For the Play Store, use `--profile production`, which makes an `.aab`.
 
-Before publishing, change `com.yourstudio.shadowpatternmatcher` in `app.json` to your own package name. The local APK is signed with the debug key, which is fine for testing on phones but not for the Play Store.
+The app's package name / bundle ID is `com.krunal.shadowpattern` (set in `app.json`). It is permanent once the app is on the Play Store or App Store, and Firebase apps are registered under it.
 
 ```bash
 npm run typecheck       # tsc --noEmit

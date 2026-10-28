@@ -1,0 +1,23 @@
+rules_version = '2';
+
+// Global leaderboard: one document per player, scores/{uid}.
+// Anyone can read the board; a player can only write their own document,
+// and only with a sane name and a total no higher than the game allows
+// (163 levels × 310 points = 50530 — update if levels or points change).
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /scores/{uid} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['name', 'total', 'updatedAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 2
+        && request.resource.data.name.size() <= 20
+        && request.resource.data.total is int
+        && request.resource.data.total >= 0
+        && request.resource.data.total <= 50530
+        && request.resource.data.updatedAt == request.time;
+    }
+  }
+}

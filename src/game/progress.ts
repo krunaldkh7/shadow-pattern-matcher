@@ -1,6 +1,7 @@
 import { File, Paths } from 'expo-file-system';
 import { useSyncExternalStore } from 'react';
 import { LEVEL_COUNT } from './levels';
+import { pointsFor } from './points';
 import { TIERS } from './tiers';
 
 /**
@@ -13,6 +14,8 @@ export interface LevelRecord {
   /** Skipped with a reward video rather than solved; solving it later clears this. */
   skipped?: boolean;
   bestSeconds: number;
+  /** Best points earned on this level (see points.ts); absent in older saves. */
+  points?: number;
 }
 
 export interface ProgressState {
@@ -21,9 +24,11 @@ export interface ProgressState {
   levels: Record<number, LevelRecord>;
   hapticsEnabled: boolean;
   seenTutorial: boolean;
+  /** Name shown on the global leaderboard; empty until the player picks one. */
+  playerName: string;
 }
 
-const DEFAULT: ProgressState = { unlocked: 0, levels: {}, hapticsEnabled: true, seenTutorial: false };
+const DEFAULT: ProgressState = { unlocked: 0, levels: {}, hapticsEnabled: true, seenTutorial: false, playerName: '' };
 
 const file = new File(Paths.document, 'progress.json');
 
@@ -61,6 +66,7 @@ export const progress = {
     const record: LevelRecord = {
       stars: Math.max(prev?.stars ?? 0, stars),
       bestSeconds: prev && !prev.skipped ? Math.min(prev.bestSeconds, seconds) : seconds,
+      points: Math.max(prev && !prev.skipped ? levelPoints(prev) : 0, pointsFor(stars, seconds)),
     };
     commit({
       ...state,
@@ -79,6 +85,10 @@ export const progress = {
     });
   },
 
+  setPlayerName(name: string) {
+    commit({ ...state, playerName: name.trim() });
+  },
+
   setHaptics(enabled: boolean) {
     commit({ ...state, hapticsEnabled: enabled });
   },
@@ -88,7 +98,7 @@ export const progress = {
   },
 
   reset() {
-    commit({ ...DEFAULT, hapticsEnabled: state.hapticsEnabled, seenTutorial: true });
+    commit({ ...DEFAULT, hapticsEnabled: state.hapticsEnabled, seenTutorial: true, playerName: state.playerName });
   },
 };
 
@@ -103,6 +113,16 @@ export const UNLOCK_ALL_LEVELS = false;
 export function isLevelUnlocked(s: ProgressState, index: number) {
   if (UNLOCK_ALL_LEVELS || index <= s.unlocked) return true;
   return TIERS.some((t) => t.start === index) || !!s.levels[index - 1];
+}
+
+/** Points a level is worth on the leaderboard (older saves are scored from their bulbs and time). */
+export function levelPoints(r: LevelRecord) {
+  if (r.skipped) return 0;
+  return r.points ?? pointsFor(r.stars, r.bestSeconds);
+}
+
+export function totalPoints(s: ProgressState) {
+  return Object.values(s.levels).reduce((sum, l) => sum + levelPoints(l), 0);
 }
 
 export function totalStars(s: ProgressState) {

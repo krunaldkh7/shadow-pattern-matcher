@@ -1,11 +1,14 @@
 /**
- * Store-required links. PLACEHOLDERS — replace every URL with your real pages
- * before submitting. The App Store needs a privacy policy and a support URL;
- * Google Play needs a privacy policy (and AdMob requires one for ads).
+ * Store-required links. The App Store needs a privacy policy and a support
+ * URL; Google Play needs a privacy policy (AdMob requires one too). The pages
+ * are on the developer's blog, so they can be edited without an app release.
+ * app-ads.txt for AdMob lives separately on https://krunaldkh7.github.io.
  */
+const BLOG = 'https://coresyncro.blogspot.com/2026/10';
+
 export const LEGAL_LINKS = {
-  privacyPolicy: 'https://example.com/shadow-pattern-matcher/privacy-policy',
-  termsOfUse: 'https://example.com/shadow-pattern-matcher/terms',
-  support: 'https://example.com/shadow-pattern-matcher/support',
-  supportEmail: 'support@example.com',
+  privacyPolicy: `${BLOG}/privacy-policy-shadow-pattern-matcher.html`,
+  termsOfUse: `${BLOG}/terms-of-use-shadow-pattern-matcher.html`,
+  support: `${BLOG}/support-shadow-pattern-matcher.html`,
+  supportEmail: 'krunaldudhagara7777@gmail.com',
 };

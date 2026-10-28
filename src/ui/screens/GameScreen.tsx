@@ -4,6 +4,7 @@ import { Alert, AppState, BackHandler, StyleSheet, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AdBanner } from '../../ads/AdBanner';
+import { track } from '../../analytics/analytics';
 import { BonusOffer } from '../../ads/BonusOffer';
 import {
   onLevelSolvedNavigate,
@@ -15,6 +16,7 @@ import {
 import { COLORS } from '../../game/constants';
 import { GameEngine } from '../../game/GameEngine';
 import { customLevels, toShape, type CustomLevel } from '../../game/customLevels';
+import { pointsFor } from '../../game/points';
 import { progress } from '../../game/progress';
 import { tierOf } from '../../game/tiers';
 import { useGameUI } from '../../hooks/useGameUI';
@@ -61,12 +63,29 @@ export function GameScreen({ startLevel, custom }: { startLevel: number; custom?
   // Where "Levels" / "All levels" lead: the level's gallery, or the player's own list.
   const menuHref = custom ? '/my-levels' : `/tier/${tierOf(levelIndex).id}`;
 
+  // Analytics context for this level: which gallery, or a player-made one.
+  const levelParams = custom
+    ? { level: 0, tier: 'custom', custom: true }
+    : { level: ui.levelNumber, tier: tierOf(levelIndex).id, custom: false };
+  const levelParamsRef = useRef(levelParams);
+  levelParamsRef.current = levelParams;
+
+  useEffect(() => {
+    track('level_start', levelParamsRef.current);
+  }, [ui.levelNumber]);
+
   // Save the result once per solve (status flips to 'success' at the snap).
   useEffect(() => {
     if (ui.status !== 'success') return;
+    track('level_complete', {
+      ...levelParamsRef.current,
+      stars: ui.stars,
+      seconds: ui.solveSeconds,
+      hints: ui.hintsUsed,
+    });
     if (custom) customLevels.recordWin(custom.id, ui.stars, ui.solveSeconds);
     else progress.recordWin(levelIndex, ui.stars, ui.solveSeconds);
-  }, [ui.status, levelIndex, ui.stars, ui.solveSeconds, custom]);
+  }, [ui.status, levelIndex, ui.stars, ui.solveSeconds, ui.hintsUsed, custom]);
 
   // Offer the bonus once the card is up, only if bulbs were spent and an ad is ready.
   useEffect(() => {
@@ -77,6 +96,7 @@ export function GameScreen({ startLevel, custom }: { startLevel: number; custom?
 
   const earnBonus = useCallback(() => {
     progress.recordWin(levelIndex, 3, ui.solveSeconds);
+    track('bonus_bulbs_earned', levelParamsRef.current);
     setBonus((b) => ({ ...b, state: 'earned' }));
   }, [levelIndex, ui.solveSeconds]);
   const endBonus = useCallback(() => setBonus((b) => (b.state === 'offer' ? { ...b, state: 'done' } : b)), []);
@@ -102,6 +122,7 @@ export function GameScreen({ startLevel, custom }: { startLevel: number; custom?
           engine.resume();
           setSkipping(false);
           if (result === 'earned') {
+            track('level_skip', levelParamsRef.current);
             progress.recordSkip(levelIndex);
             if (engine.isLastLevel) router.dismissTo(menuHref);
             else engine.nextLevel();
@@ -196,6 +217,7 @@ export function GameScreen({ startLevel, custom }: { startLevel: number; custom?
         <LevelCompleteOverlay
           label={label}
           finishLabel={custom ? 'Back to my levels' : undefined}
+          points={custom ? undefined : pointsFor(bonusForThis === 'earned' ? 3 : ui.stars, ui.solveSeconds)}
           shapeName={ui.shapeName}
           bulbsLeft={bonusForThis === 'earned' ? 3 : ui.bulbsLeft}
           hintsUsed={ui.hintsUsed}

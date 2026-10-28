@@ -7,6 +7,8 @@ interface Props {
   label: string;
   /** Primary button text on the final level (or a custom level). */
   finishLabel?: string;
+  /** Leaderboard points earned by this solve (gallery levels only). */
+  points?: number;
   shapeName: string;
   bulbsLeft: number;
   hintsUsed: number;
@@ -42,6 +44,7 @@ function formatTime(s: number) {
 export function LevelCompleteOverlay({
   label,
   finishLabel = 'Gallery complete — back to menu',
+  points,
   shapeName,
   bulbsLeft,
   hintsUsed,
@@ -71,6 +74,7 @@ export function LevelCompleteOverlay({
           <View>
             <Text style={styles.fact}>Matched in {formatTime(solveSeconds)}</Text>
             <Text style={styles.factSoft}>{hintLine}</Text>
+            {points !== undefined ? <Text style={styles.points}>+{points} points</Text> : null}
           </View>
           <View style={styles.bulbs} accessibilityLabel={`${bulbsLeft} of 3 bulbs kept`}>
             {[0, 1, 2].map((i) => (
@@ -146,6 +150,7 @@ const styles = StyleSheet.create({
   factsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   fact: { fontFamily: FONT.label, fontSize: 15, color: INK.ink },
   factSoft: { fontFamily: FONT.body, fontSize: 14, color: INK.inkSoft, marginTop: 2 },
+  points: { fontFamily: FONT.label, fontSize: 14, color: INK.brass, marginTop: 2 },
   bulbs: { flexDirection: 'row', gap: 2 },
   primary: { height: 50, borderRadius: 3, backgroundColor: INK.ink, alignItems: 'center', justifyContent: 'center' },
   primaryPressed: { backgroundColor: '#2c2018' },
