@@ -2,13 +2,14 @@ import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { Alert, Linking, StyleSheet, Switch, Text, View } from 'react-native';
 import { progress, useProgress } from '../game/progress';
-import { skipNextAppOpen } from '../ads/googleAds';
+import { showPrivacyOptions, skipNextAppOpen, usePrivacyOptionsRequired } from '../ads/googleAds';
 import { LEGAL_LINKS } from '../legal';
 import { MenuButton, MenuScreen } from '../ui/components/MenuKit';
 import { FONT, INK } from '../ui/theme';
 
 export default function Settings() {
   const state = useProgress();
+  const privacyOptions = usePrivacyOptionsRequired();
 
   const confirmReset = () =>
     Alert.alert('Reset progress?', 'All solved levels and bulbs will be erased. This cannot be undone.', [
@@ -36,6 +37,8 @@ export default function Settings() {
 
       <Section title="About & legal">
         <MenuButton icon="shield-checkmark-outline" label="Privacy Policy" onPress={() => open(LEGAL_LINKS.privacyPolicy)} />
+        {/* Shown only where privacy law requires it (EEA, UK…). */}
+        {privacyOptions && <MenuButton icon="options-outline" label="Ad privacy choices" onPress={showPrivacyOptions} />}
         <MenuButton icon="document-text-outline" label="Terms of Use" onPress={() => open(LEGAL_LINKS.termsOfUse)} />
         <MenuButton icon="chatbubble-ellipses-outline" label="Support" onPress={() => open(LEGAL_LINKS.support)} />
         <MenuButton

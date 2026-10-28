@@ -497,6 +497,58 @@ export function nativeModule() {
 // ──────────────────────────────── startup ────────────────────────────────
 
 /**
+ * GDPR / UK privacy consent through Google's User Messaging Platform. Shows
+ * the consent form configured in AdMob → Privacy & messaging when the player
+ * is in a region that needs it (EEA, UK, Switzerland); elsewhere it returns at
+ * once. Ads are requested only when UMP says so; if the check can't complete
+ * (offline), the last known answer stands, which for a new player means no ads.
+ */
+async function gatherConsent(m: AdsModule): Promise<boolean> {
+  try {
+    const info = await m.AdsConsent.gatherConsent();
+    setPrivacyOptionsRequired(info.privacyOptionsRequirementStatus === m.AdsConsentPrivacyOptionsRequirementStatus.REQUIRED);
+    return info.canRequestAds;
+  } catch (e) {
+    log('consent: gather failed', e);
+    try {
+      return (await m.AdsConsent.getConsentInfo()).canRequestAds;
+    } catch {
+      return false;
+    }
+  }
+}
+
+// Players in consent regions must be able to change their choice later (Settings → Ad privacy choices).
+let privacyOptionsRequired = false;
+const privacyListeners = new Set<() => void>();
+function setPrivacyOptionsRequired(required: boolean) {
+  privacyOptionsRequired = required;
+  privacyListeners.forEach((l) => l());
+}
+
+export function usePrivacyOptionsRequired() {
+  return useSyncExternalStore(
+    (l) => {
+      privacyListeners.add(l);
+      return () => privacyListeners.delete(l);
+    },
+    () => privacyOptionsRequired,
+    () => privacyOptionsRequired,
+  );
+}
+
+/** Re-open the consent form so the player can change their choice. */
+export async function showPrivacyOptions() {
+  const m = ads();
+  if (!m) return;
+  try {
+    await m.AdsConsent.showPrivacyOptionsForm();
+  } catch (e) {
+    log('consent: privacy options failed', e);
+  }
+}
+
+/**
  * iOS App Tracking Transparency: ask once, before the first ad request, so
  * AdMob can personalise ads when the player allows it. Declining (or any
  * failure) just means non-personalised ads.
@@ -524,6 +576,12 @@ export async function startAds() {
   const m = ads();
   log('config', config.showAds ? 'ads on' : 'ads off', m ? '' : '(no native ads module — Expo Go?)');
   if (!config.showAds || !m) {
+    adConfig.set({ ...config, showAds: false });
+    return;
+  }
+  // Google's order: privacy consent (GDPR/UMP) first, then Apple's tracking prompt, then ads.
+  if (!(await gatherConsent(m))) {
+    log('consent: ads not allowed for now');
     adConfig.set({ ...config, showAds: false });
     return;
   }
