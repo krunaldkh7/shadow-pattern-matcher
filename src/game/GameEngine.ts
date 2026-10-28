@@ -36,8 +36,10 @@ export interface UISnapshot {
   interacted: boolean;
   hintsUsed: number;
   stars: number; // 1..3 after completion
-  /** Bulbs left out of 3 (each hint switches one off). */
+  /** Bulbs left out of 3 (each lightbulb hint switches one off). */
   bulbsLeft: number;
+  /** Free ghost hints left out of 3. */
+  ghostsLeft: number;
   /** Seconds from level start to the snap (0 while playing). */
   solveSeconds: number;
 }
@@ -53,6 +55,8 @@ interface RotationAnim {
 }
 
 const MAX_HISTORY = 40;
+/** Free uses per level of each hint button before a rewarded ad is needed. */
+export const HINTS_PER_LEVEL = 3;
 const UI_INTERVAL_MS = 66; // ~15 Hz is plenty for a % readout
 
 const _qa = new THREE.Quaternion();
@@ -74,6 +78,10 @@ export class GameEngine {
   private dragging = false;
   private projected = new Float32Array(0);
   private hintsUsed = 0;
+  /** Lightbulb hints paid with a bulb this level (ad-paid ones are free). */
+  private bulbsSpent = 0;
+  /** Ghost hints used for free this level (ad-paid ones don't count). */
+  private ghostsSpent = 0;
   private interacted = false;
   private ghostUntil = 0;
   private successAt = 0;
@@ -101,6 +109,8 @@ export class GameEngine {
     this.anim = null;
     this.inertia.x = this.inertia.y = 0;
     this.hintsUsed = 0;
+    this.bulbsSpent = 0;
+    this.ghostsSpent = 0;
     this.interacted = false;
     this.ghostUntil = 0;
     this.successAt = 0;
@@ -195,24 +205,46 @@ export class GameEngine {
     haptics.tap();
   }
 
+  /** Bulbs still lit this level (0..3); each lightbulb hint uses one. */
+  get bulbsLeft() {
+    return Math.max(0, HINTS_PER_LEVEL - this.bulbsSpent);
+  }
+
+  /** Free ghost hints left this level (0..3). */
+  get ghostsLeft() {
+    return Math.max(0, HINTS_PER_LEVEL - this.ghostsSpent);
+  }
+
+  /** A hint is affordable when it's paid by an ad or its free allowance isn't used up. */
+  private payForHint(kind: 'bulb' | 'ghost', paidWithAd: boolean) {
+    const left = kind === 'bulb' ? this.bulbsLeft : this.ghostsLeft;
+    if (!paidWithAd && left === 0) return false;
+    if (!paidWithAd) {
+      if (kind === 'bulb') this.bulbsSpent++;
+      else this.ghostsSpent++;
+    }
+    this.hintsUsed++;
+    return true;
+  }
+
   /** Lightbulb: auto-rotate 50% of the remaining way to the solution. */
-  autoRotateHint() {
-    if (this.status !== 'playing') return;
+  autoRotateHint(paidWithAd = false) {
+    if (this.status !== 'playing' || !this.payForHint('bulb', paidWithAd)) return;
     this.pushHistory();
     this.inertia.x = this.inertia.y = 0;
     const halfway = this.quat.clone().slerp(this.closestTarget(), 0.5);
     this.startAnim('hint', halfway, HINT_ROTATE_DURATION);
-    this.hintsUsed++;
     this.interacted = true;
     haptics.hint();
     this.emit(true);
   }
 
   /** Hint button: show a translucent "ghost" of the solved wire for a few seconds. */
-  showGhost() {
-    if (this.status !== 'playing' || this.isGhostVisible()) return;
+  showGhost(paidWithAd = false) {
+    if (this.status !== 'playing' || this.isGhostVisible() || !this.payForHint('ghost', paidWithAd)) return;
     this.ghostUntil = Date.now() + GHOST_DURATION;
-    this.hintsUsed++;
+    // A hint counts as interacting, so the "Drag to rotate" prompt gives way to the ghost.
+    this.interacted = true;
     haptics.hint();
     this.emit(true);
   }
@@ -353,8 +385,9 @@ export class GameEngine {
       ghostVisible: this.isGhostVisible(),
       interacted: this.interacted,
       hintsUsed: this.hintsUsed,
-      stars: this.hintsUsed === 0 ? 3 : this.hintsUsed === 1 ? 2 : 1,
-      bulbsLeft: Math.max(0, 3 - this.hintsUsed),
+      stars: Math.max(1, this.bulbsLeft),
+      bulbsLeft: this.bulbsLeft,
+      ghostsLeft: this.ghostsLeft,
       solveSeconds: this.solvedAt ? Math.max(1, Math.round((this.solvedAt - this.startedAt) / 1000)) : 0,
     };
   }
@@ -372,7 +405,9 @@ export class GameEngine {
       prev.ghostVisible === next.ghostVisible &&
       prev.interacted === next.interacted &&
       prev.levelNumber === next.levelNumber &&
-      prev.hintsUsed === next.hintsUsed
+      prev.hintsUsed === next.hintsUsed &&
+      prev.bulbsLeft === next.bulbsLeft &&
+      prev.ghostsLeft === next.ghostsLeft
     ) {
       return;
     }

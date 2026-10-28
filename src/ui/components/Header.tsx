@@ -1,4 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
+import type { HintMode } from '../../hooks/useHintAccess';
 import { FONT, INK } from '../theme';
 import { IconButton } from './IconButton';
 
@@ -8,6 +10,8 @@ interface Props {
   solved: boolean;
   onLightbulb: () => void;
   hintDisabled: boolean;
+  hintMode: HintMode;
+  bulbsLeft: number;
   onPause: () => void;
 }
 
@@ -19,7 +23,7 @@ const DOTS = 20;
  * The meter is a row of 20 dots — the same dots that draw the target outline —
  * which fill with ink as the shadow lines up (one dot per 5%).
  */
-export function Header({ levelNumber, accuracy, solved, onLightbulb, hintDisabled, onPause }: Props) {
+export function Header({ levelNumber, accuracy, solved, onLightbulb, hintDisabled, hintMode, bulbsLeft, onPause }: Props) {
   const filled = Math.round(accuracy / (100 / DOTS));
 
   return (
@@ -41,13 +45,24 @@ export function Header({ levelNumber, accuracy, solved, onLightbulb, hintDisable
         </View>
       </View>
 
-      <IconButton
-        icon="bulb-outline"
-        size={44}
-        onPress={onLightbulb}
-        disabled={hintDisabled}
-        accessibilityLabel="Hint: turn the sculpture halfway to the answer"
-      />
+      <View style={styles.hintCol}>
+        <IconButton
+          icon={hintMode === 'ad' ? 'play-circle-outline' : 'bulb-outline'}
+          size={44}
+          onPress={onLightbulb}
+          disabled={hintDisabled || hintMode === 'none'}
+          accessibilityLabel={
+            hintMode === 'ad'
+              ? 'Watch an ad to turn the sculpture halfway to the answer'
+              : 'Hint: turn the sculpture halfway to the answer, costs one bulb'
+          }
+        />
+        <View style={styles.bulbs} accessibilityLabel={`${bulbsLeft} of 3 bulbs left`}>
+          {[0, 1, 2].map((i) => (
+            <Ionicons key={i} name={i < bulbsLeft ? 'bulb' : 'bulb-outline'} size={11} color={i < bulbsLeft ? INK.brass : INK.inkFaint} />
+          ))}
+        </View>
+      </View>
     </View>
   );
 }
@@ -61,6 +76,8 @@ const styles = StyleSheet.create({
   value: { fontFamily: FONT.numeral, fontSize: 44, lineHeight: 50, color: INK.ink, fontVariant: ['tabular-nums'] },
   unit: { fontFamily: FONT.body, fontSize: 16, color: INK.inkSoft },
   dots: { flexDirection: 'row', gap: 4, marginTop: 2 },
+  hintCol: { width: 70, alignItems: 'flex-end', gap: 4 },
+  bulbs: { flexDirection: 'row' },
   dot: { width: 4, height: 4, borderRadius: 2 },
   dotOn: { backgroundColor: INK.ink },
   dotOff: { backgroundColor: INK.inkFaint },

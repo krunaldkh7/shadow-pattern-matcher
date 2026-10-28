@@ -1,13 +1,17 @@
-import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { AppState, BackHandler, StyleSheet, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AdBanner } from '../../ads/AdBanner';
+import { BonusOffer } from '../../ads/BonusOffer';
+import { onLevelSolvedNavigate, setInGame, useRewardedInterstitialReady } from '../../ads/googleAds';
 import { COLORS } from '../../game/constants';
 import { GameEngine } from '../../game/GameEngine';
 import { progress } from '../../game/progress';
 import { tierOf } from '../../game/tiers';
 import { useGameUI } from '../../hooks/useGameUI';
+import { useHintAccess } from '../../hooks/useHintAccess';
 import { useRotationGestures } from '../../hooks/useRotationGestures';
 import { GameScene } from '../../three/GameScene';
 import { ControlBar } from '../components/ControlBar';
@@ -15,6 +19,9 @@ import { DragHint } from '../components/DragHint';
 import { Header } from '../components/Header';
 import { LevelCompleteOverlay } from '../components/LevelCompleteOverlay';
 import { PauseOverlay } from '../components/PauseOverlay';
+
+/** Height of the Undo / Reset / Hint row, so the drag hint sits just above it. */
+const CONTROLS_HEIGHT = 96;
 
 /**
  * Composition root for one play session.
@@ -24,9 +31,23 @@ import { PauseOverlay } from '../components/PauseOverlay';
 export function GameScreen({ startLevel }: { startLevel: number }) {
   const [engine] = useState(() => new GameEngine(startLevel));
   const ui = useGameUI(engine);
+  const hint = useHintAccess(engine, ui);
   const gesture = useRotationGestures(engine);
   const insets = useSafeAreaInsets();
   const [paused, setPaused] = useState(false);
+  const [bannerHeight, setBannerHeight] = useState(0);
+
+  // While this screen is focused, taps don't count toward interstitials and none can open.
+  useFocusEffect(
+    useCallback(() => {
+      setInGame(true);
+      return () => setInGame(false);
+    }, []),
+  );
+  // Rewarded-interstitial bonus on the solved card: offered once per solve when bulbs were spent.
+  const bonusReady = useRewardedInterstitialReady();
+  const [bonus, setBonus] = useState<{ level: number; state: 'offer' | 'done' | 'earned' }>({ level: 0, state: 'done' });
+  const bonusForThis = bonus.level === ui.levelNumber ? bonus.state : null;
   const playing = ui.status === 'playing';
   const levelIndex = ui.levelNumber - 1;
 
@@ -34,6 +55,19 @@ export function GameScreen({ startLevel }: { startLevel: number }) {
   useEffect(() => {
     if (ui.status === 'success') progress.recordWin(levelIndex, ui.stars, ui.solveSeconds);
   }, [ui.status, levelIndex, ui.stars, ui.solveSeconds]);
+
+  // Offer the bonus once the card is up, only if bulbs were spent and an ad is ready.
+  useEffect(() => {
+    if (ui.status === 'complete' && bonusForThis === null && ui.bulbsLeft < 3 && bonusReady) {
+      setBonus({ level: ui.levelNumber, state: 'offer' });
+    }
+  }, [ui.status, ui.levelNumber, ui.bulbsLeft, bonusReady, bonusForThis]);
+
+  const earnBonus = useCallback(() => {
+    progress.recordWin(levelIndex, 3, ui.solveSeconds);
+    setBonus((b) => ({ ...b, state: 'earned' }));
+  }, [levelIndex, ui.solveSeconds]);
+  const endBonus = useCallback(() => setBonus((b) => (b.state === 'offer' ? { ...b, state: 'done' } : b)), []);
 
   const pause = () => {
     engine.pause();
@@ -43,6 +77,39 @@ export function GameScreen({ startLevel }: { startLevel: number }) {
     engine.resume();
     setPaused(false);
   };
+
+  // The solve clock only runs while the app is on screen: stop it in the
+  // background and restart it on return, unless the player had paused.
+  const pausedRef = useRef(paused);
+  pausedRef.current = paused;
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'background') engine.pause();
+      else if (state === 'active' && !pausedRef.current) engine.resume();
+    });
+    return () => sub.remove();
+  }, [engine]);
+
+  // Android back: opens the pause menu (or closes it) instead of dropping the level.
+  // Once the level is solved, back leaves to the gallery as usual.
+  const statusRef = useRef(ui.status);
+  statusRef.current = ui.status;
+  useFocusEffect(
+    useCallback(() => {
+      const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+        if (statusRef.current === 'complete') return false;
+        if (pausedRef.current) {
+          engine.resume();
+          setPaused(false);
+        } else {
+          engine.pause();
+          setPaused(true);
+        }
+        return true;
+      });
+      return () => sub.remove();
+    }, [engine]),
+  );
 
   return (
     <View style={styles.root}>
@@ -57,25 +124,29 @@ export function GameScreen({ startLevel }: { startLevel: number }) {
           levelNumber={ui.levelNumber}
           accuracy={ui.accuracy}
           solved={!playing}
-          hintDisabled={!playing}
-          onLightbulb={() => engine.autoRotateHint()}
+          hintDisabled={!playing || hint.busy}
+          onLightbulb={hint.lightbulb}
+          hintMode={hint.bulbMode}
+          bulbsLeft={bonusForThis === 'earned' ? 3 : ui.bulbsLeft}
           onPause={pause}
         />
       </View>
 
-      <View pointerEvents="none" style={styles.hintZone}>
+      <View pointerEvents="none" style={[styles.hintZone, { bottom: insets.bottom + 14 + bannerHeight + CONTROLS_HEIGHT }]}>
         <DragHint visible={!ui.interacted && playing} />
       </View>
 
       {ui.status !== 'complete' && (
-        <View pointerEvents="box-none" style={[styles.bottom, { paddingBottom: insets.bottom + 14 }]}>
+        <View pointerEvents="box-none" style={[styles.bottom, { paddingBottom: insets.bottom + 14 + bannerHeight }]}>
           <ControlBar
             canUndo={ui.canUndo}
             disabled={!playing}
             ghostActive={ui.ghostVisible}
             onUndo={() => engine.undo()}
             onReset={() => engine.reset()}
-            onHint={() => engine.showGhost()}
+            onHint={hint.ghost}
+            hintMode={hint.busy ? 'none' : hint.ghostMode}
+            hintsLeft={ui.ghostsLeft}
           />
         </View>
       )}
@@ -84,16 +155,31 @@ export function GameScreen({ startLevel }: { startLevel: number }) {
         <LevelCompleteOverlay
           levelNumber={ui.levelNumber}
           shapeName={ui.shapeName}
-          bulbsLeft={ui.bulbsLeft}
+          bulbsLeft={bonusForThis === 'earned' ? 3 : ui.bulbsLeft}
           hintsUsed={ui.hintsUsed}
           solveSeconds={ui.solveSeconds}
-          bottomInset={insets.bottom}
+          bottomInset={insets.bottom + bannerHeight}
           isLast={engine.isLastLevel}
-          onNext={() => engine.nextLevel()}
+          onNext={() => {
+            onLevelSolvedNavigate();
+            engine.nextLevel();
+          }}
           onReplay={() => engine.replayLevel()}
           onMenu={() => router.dismissTo(`/tier/${tierOf(levelIndex).id}`)}
         />
       )}
+
+      {/* The bonus offer floats under the header, apart from the solved card, so the card's buttons never move. */}
+      {ui.status === 'complete' && bonusForThis === 'offer' && (
+        <View pointerEvents="box-none" style={[styles.bonus, { top: insets.top + 96 }]}>
+          <BonusOffer onEarned={earnBonus} onDone={endBonus} />
+        </View>
+      )}
+
+      {/* Always-on banner along the bottom edge; the controls and the solved card sit above it. */}
+      <View pointerEvents="box-none" style={[styles.banner, { paddingBottom: insets.bottom }]}>
+        <AdBanner onHeight={setBannerHeight} />
+      </View>
 
       {paused && (
         <PauseOverlay
@@ -104,6 +190,7 @@ export function GameScreen({ startLevel }: { startLevel: number }) {
             setPaused(false);
           }}
           onLevels={() => router.dismissTo(`/tier/${tierOf(levelIndex).id}`)}
+          onHome={() => router.dismissTo('/')}
           onSettings={() => router.push('/settings')}
         />
       )}
@@ -114,6 +201,8 @@ export function GameScreen({ startLevel }: { startLevel: number }) {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: COLORS.background },
   top: { position: 'absolute', top: 0, left: 0, right: 0 },
-  hintZone: { position: 'absolute', left: 0, right: 0, bottom: '17%', alignItems: 'center' },
+  hintZone: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
   bottom: { position: 'absolute', bottom: 0, left: 0, right: 0 },
+  banner: { position: 'absolute', bottom: 0, left: 0, right: 0 },
+  bonus: { position: 'absolute', left: 30, right: 30, alignItems: 'center' },
 });

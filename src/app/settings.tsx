@@ -1,7 +1,9 @@
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
-import { Alert, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Linking, StyleSheet, Switch, Text, View } from 'react-native';
 import { progress, useProgress } from '../game/progress';
+import { skipNextAppOpen } from '../ads/googleAds';
+import { LEGAL_LINKS } from '../legal';
 import { MenuButton, MenuScreen } from '../ui/components/MenuKit';
 import { FONT, INK } from '../ui/theme';
 
@@ -32,6 +34,18 @@ export default function Settings() {
         <MenuButton icon="help-circle-outline" label="How to play" onPress={() => router.push('/how-to-play')} />
       </Section>
 
+      <Section title="About & legal">
+        <MenuButton icon="shield-checkmark-outline" label="Privacy Policy" onPress={() => open(LEGAL_LINKS.privacyPolicy)} />
+        <MenuButton icon="document-text-outline" label="Terms of Use" onPress={() => open(LEGAL_LINKS.termsOfUse)} />
+        <MenuButton icon="chatbubble-ellipses-outline" label="Support" onPress={() => open(LEGAL_LINKS.support)} />
+        <MenuButton
+          icon="mail-outline"
+          label="Contact us"
+          sublabel={LEGAL_LINKS.supportEmail}
+          onPress={() => open(`mailto:${LEGAL_LINKS.supportEmail}`)}
+        />
+      </Section>
+
       <Section title="Progress">
         <MenuButton icon="trash-outline" label="Reset progress" onPress={confirmReset} />
       </Section>
@@ -41,6 +55,12 @@ export default function Settings() {
       </Text>
     </MenuScreen>
   );
+}
+
+/** Open an external link; a missing browser/mail app just shows a note instead of throwing. */
+function open(url: string) {
+  skipNextAppOpen();
+  Linking.openURL(url).catch(() => Alert.alert('Could not open link', url));
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {

@@ -1,7 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { Fragment } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { AdNativeCard } from '../ads/AdNativeCard';
 import { useProgress } from '../game/progress';
 import { TIERS } from '../game/tiers';
 import { MenuScreen } from '../ui/components/MenuKit';
@@ -19,7 +21,9 @@ export default function Tiers() {
           const s = tierStats(tier, state);
           const done = s.solved === s.total;
           return (
-            <Animated.View key={tier.id} entering={FadeInDown.duration(380).delay(60 * i)}>
+            <Fragment key={tier.id}>
+            {i === 2 && <AdNativeCard />}
+            <Animated.View entering={FadeInDown.duration(380).delay(60 * i)}>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={`${tier.name}, levels ${tier.start + 1} to ${tier.end + 1}${s.locked ? ', locked' : ''}`}
@@ -59,6 +63,7 @@ export default function Tiers() {
                 <Ionicons name="chevron-forward" size={20} color={INK.inkSoft} />
               </Pressable>
             </Animated.View>
+            </Fragment>
           );
         })}
       </View>

@@ -8,7 +8,8 @@
     "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.yourstudio.shadowpatternmatcher"
+      "bundleIdentifier": "com.yourstudio.shadowpatternmatcher",
+      "appleTeamId": "F7X54G99TU"
     },
     "android": {
       "adaptiveIcon": {
@@ -40,8 +41,15 @@
         "expo-build-properties",
         {
           "android": {
-            "extraProguardRules": "# expo-gl's GLView extends TextureView (not ExpoView), so Expo's keep rules miss its constructor.\n-keep class expo.modules.gl.** { *; }"
+            "extraProguardRules": "# expo-gl's GLView extends TextureView (not ExpoView), so Expo's keep rules miss its constructor.\n-keep class expo.modules.gl.** { *; }\n# Room builds databases by reflection (e.g. WorkManager's WorkDatabase_Impl, pulled in by Google Mobile Ads).\n-keep class * extends androidx.room.RoomDatabase { <init>(); }"
           }
+        }
+      ],
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-3940256099942544~3347511713",
+          "iosAppId": "ca-app-pub-3940256099942544~1458002511"
         }
       ]
     ],
@@ -55,7 +63,8 @@
       },
       "eas": {
         "projectId": "b9906c95-fae9-4e0e-ae79-065c6be972df"
-      }
+      },
+      "adsConfigUrl": "https://raw.githubusercontent.com/krunaldkh7/shadow-pattern-matcher-config/main/ads.json"
     },
     "owner": "krunaldkh7"
   }

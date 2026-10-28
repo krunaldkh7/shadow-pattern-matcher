@@ -1,6 +1,7 @@
 import { File, Paths } from 'expo-file-system';
 import { useSyncExternalStore } from 'react';
 import { LEVEL_COUNT } from './levels';
+import { TIERS } from './tiers';
 
 /**
  * Saved player progress + settings, persisted as one small JSON file in the
@@ -80,20 +81,26 @@ export const progress = {
 };
 
 /** TESTING ONLY: opens every level without touching saved progress. Set back to false before release. */
-export const UNLOCK_ALL_LEVELS = true;
+export const UNLOCK_ALL_LEVELS = false;
 
+/**
+ * Every gallery's first level is always open; after that a level opens once
+ * the one before it is solved. `unlocked` still covers progress saved before
+ * this rule existed.
+ */
 export function isLevelUnlocked(s: ProgressState, index: number) {
-  return UNLOCK_ALL_LEVELS || index <= s.unlocked;
+  if (UNLOCK_ALL_LEVELS || index <= s.unlocked) return true;
+  return TIERS.some((t) => t.start === index) || !!s.levels[index - 1];
 }
 
 export function totalStars(s: ProgressState) {
   return Object.values(s.levels).reduce((sum, l) => sum + l.stars, 0);
 }
 
-/** Index of the level "Continue" should open: the first unsolved unlocked one. */
+/** Index of the level "Continue" should open: the first unsolved level that is open. */
 export function continueIndex(s: ProgressState) {
-  for (let i = 0; i <= s.unlocked; i++) if (!s.levels[i]) return i;
-  return s.unlocked;
+  for (let i = 0; i < LEVEL_COUNT; i++) if (!s.levels[i] && isLevelUnlocked(s, i)) return i;
+  return 0;
 }
 
 export function useProgress(): ProgressState {

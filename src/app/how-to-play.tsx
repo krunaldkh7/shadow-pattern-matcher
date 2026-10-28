@@ -9,7 +9,11 @@ const STEPS: { icon: keyof typeof Ionicons.glyphMap; title: string; body: string
   { icon: 'hand-left-outline', title: 'Drag to turn', body: 'Slide one finger to tip the sculpture up, down and sideways. Flick it and it keeps spinning.' },
   { icon: 'sync-outline', title: 'Twist with two fingers', body: 'Rotate two fingers to spin the sculpture flat against the wall.' },
   { icon: 'checkmark-circle-outline', title: 'Match it', body: 'The meter at the top fills as the shadow lines up. Get close and it snaps into place.' },
-  { icon: 'bulb-outline', title: 'Keep your bulbs', body: 'Stuck? The bulb turns the wire halfway, and the eye shows a ghost of the answer. Each hint costs one of three bulbs.' },
+  {
+    icon: 'bulb-outline',
+    title: 'Keep your bulbs',
+    body: 'Stuck? The bulb turns the wire halfway and uses one of your 3 bulbs — bulbs left are your stars. The eye shows a ghost of the answer, 3 times per level. When either runs out, watch a short video for another hint.',
+  },
 ];
 
 export default function HowToPlay() {
@@ -36,7 +40,11 @@ export default function HowToPlay() {
       <MenuButton
         variant="primary"
         label={then ? 'Start playing' : 'Got it'}
-        onPress={() => (then ? router.replace(`/play/${then}`) : router.back())}
+        onPress={() => {
+          if (then) router.replace(`/play/${then}`);
+          else if (router.canGoBack()) router.back();
+          else router.replace('/');
+        }}
       />
     </MenuScreen>
   );

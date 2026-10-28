@@ -3,6 +3,8 @@ import { router } from 'expo-router';
 import type { ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AdBanner } from '../../ads/AdBanner';
+import { onScreenTap } from '../../ads/googleAds';
 import { FONT, INK } from '../theme';
 
 /** The sand tile of the 3D wall, flat: menus are written on the same wall as the game. */
@@ -19,10 +21,11 @@ interface ScreenProps {
 export function MenuScreen({ title, back = true, scroll = true, children }: ScreenProps) {
   const insets = useSafeAreaInsets();
   const body = (
-    <View style={[styles.body, { paddingBottom: insets.bottom + 24 }]}>{children}</View>
+    <View style={[styles.body, { paddingBottom: 24 }]}>{children}</View>
   );
   return (
-    <View style={[styles.root, { paddingTop: insets.top + 8 }]}>
+    // Every tap on a menu screen (buttons or empty space) counts toward the interstitial.
+    <View style={[styles.root, { paddingTop: insets.top + 8, paddingBottom: insets.bottom }]} onTouchEnd={onScreenTap}>
       {(back || title) && (
         <View style={styles.bar}>
           {back ? (
@@ -40,6 +43,7 @@ export function MenuScreen({ title, back = true, scroll = true, children }: Scre
         </View>
       )}
       {scroll ? <ScrollView contentContainerStyle={{ flexGrow: 1 }}>{body}</ScrollView> : body}
+      <AdBanner />
     </View>
   );
 }

@@ -1,7 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Redirect, useLocalSearchParams } from 'expo-router';
 import { FlatList, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useProgress } from '../../game/progress';
 import { TIERS } from '../../game/tiers';
 import { LevelTile } from '../../ui/components/LevelTile';
@@ -18,7 +17,6 @@ export default function TierLevels() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const state = useProgress();
   const { width } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
   const tier = TIERS.find((t) => t.id === id);
 
   if (!tier) return <Redirect href="/tiers" />;
@@ -35,7 +33,7 @@ export default function TierLevels() {
         numColumns={COLUMNS}
         keyExtractor={(i) => String(i)}
         columnWrapperStyle={{ gap: GAP }}
-        contentContainerStyle={{ gap: GAP, paddingBottom: insets.bottom + 24 }}
+        contentContainerStyle={{ gap: GAP, paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <View style={styles.header}>

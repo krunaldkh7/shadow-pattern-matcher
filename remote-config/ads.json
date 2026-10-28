@@ -1,0 +1,23 @@
+{
+  "show_ads": true,
+  "banner_ad_unit_id": "ca-app-pub-3940256099942544/9214589741",
+  "interstitial_ad_unit_id": "ca-app-pub-3940256099942544/1033173712",
+  "rewarded_ad_unit_id": "ca-app-pub-3940256099942544/5224354917",
+  "rewarded_interstitial_ad_unit_id": "ca-app-pub-3940256099942544/5354046379",
+  "app_open_ad_unit_id": "ca-app-pub-3940256099942544/9257395921",
+  "native_ad_unit_id": "ca-app-pub-3940256099942544/2247696110",
+  "interstitial_taps_min": 6,
+  "interstitial_taps_max": 12,
+  "interstitial_every_n_levels": 0,
+  "interstitial_start_after_level": 0,
+  "interstitial_min_interval_seconds": 0,
+  "app_open_cooldown_minutes": 240,
+  "ios": {
+    "banner_ad_unit_id": "ca-app-pub-3940256099942544/2435281174",
+    "interstitial_ad_unit_id": "ca-app-pub-3940256099942544/4411468910",
+    "rewarded_ad_unit_id": "ca-app-pub-3940256099942544/1712485313",
+    "rewarded_interstitial_ad_unit_id": "ca-app-pub-3940256099942544/6978759866",
+    "app_open_ad_unit_id": "ca-app-pub-3940256099942544/5575463023",
+    "native_ad_unit_id": "ca-app-pub-3940256099942544/3986624511"
+  }
+}

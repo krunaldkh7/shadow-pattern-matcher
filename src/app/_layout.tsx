@@ -12,6 +12,8 @@ import { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AdLoadingVeil } from '../ads/AdLoadingVeil';
+import { startAds } from '../ads/googleAds';
 import { progress } from '../game/progress';
 import { CrashGuard } from '../ui/CrashGuard';
 import { WALL } from '../ui/components/MenuKit';
@@ -22,6 +24,9 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 
 setHapticsEnabled(progress.get().hapticsEnabled);
 progress.subscribe(() => setHapticsEnabled(progress.get().hapticsEnabled));
+
+// Remote ad config: fetched in the background, never blocks startup; ads stay off until it says otherwise.
+startAds();
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -49,6 +54,7 @@ export default function RootLayout() {
               <Stack.Screen name="how-to-play" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
             </Stack>
           ) : null}
+          <AdLoadingVeil />
         </CrashGuard>
       </SafeAreaProvider>
     </GestureHandlerRootView>

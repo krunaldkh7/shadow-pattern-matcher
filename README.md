@@ -13,9 +13,7 @@ npx expo start          # scan the QR code with Expo Go (iOS / Android)
 Everything used here (expo-gl, gesture handler, reanimated, haptics) ships in Expo Go, so no native build is needed to play.
 ## Build an APK (Android)
 
-**Option 1: on your Windows PC (uses your Android Studio).** Double-click `build-apk.bat`. It installs packages, generates the Android project and runs Gradle. The APK appears as `ShadowPatternMatcher.apk` in the project folder. First build: 5–15 minutes.
-
-**Option 2: in Expo's cloud (no Android SDK needed).** Needs a free Expo account.
+Build in Expo's cloud (no Android SDK needed). Needs a free Expo account.
 
 ```bash
 npm install
