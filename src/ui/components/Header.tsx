@@ -5,7 +5,8 @@ import { FONT, INK } from '../theme';
 import { IconButton } from './IconButton';
 
 interface Props {
-  levelNumber: number;
+  /** e.g. "No. 12", or a custom level's name. */
+  label: string;
   accuracy: number; // 0..100
   solved: boolean;
   onLightbulb: () => void;
@@ -23,14 +24,16 @@ const DOTS = 20;
  * The meter is a row of 20 dots — the same dots that draw the target outline —
  * which fill with ink as the shadow lines up (one dot per 5%).
  */
-export function Header({ levelNumber, accuracy, solved, onLightbulb, hintDisabled, hintMode, bulbsLeft, onPause }: Props) {
+export function Header({ label, accuracy, solved, onLightbulb, hintDisabled, hintMode, bulbsLeft, onPause }: Props) {
   const filled = Math.round(accuracy / (100 / DOTS));
 
   return (
     <View style={styles.row}>
       <View style={styles.piece}>
-        <IconButton icon="pause" size={44} onPress={onPause} accessibilityLabel={`Pause level ${levelNumber}`} />
-        <Text style={styles.pieceNumber}>No. {levelNumber}</Text>
+        <IconButton icon="pause" size={44} onPress={onPause} accessibilityLabel={`Pause ${label}`} />
+        <Text style={styles.pieceNumber} numberOfLines={1}>
+          {label}
+        </Text>
       </View>
 
       <View style={styles.meter} accessibilityLabel={`${accuracy} percent match`}>

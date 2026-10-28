@@ -16,6 +16,8 @@ interface Props {
 export function LevelTile({ index: i, size, state, color }: Props) {
   const locked = !isLevelUnlocked(state, i);
   const record = state.levels[i];
+  const skipped = !!record?.skipped;
+  const solved = !!record && !skipped;
   return (
     <Pressable
       accessibilityRole="button"
@@ -25,7 +27,7 @@ export function LevelTile({ index: i, size, state, color }: Props) {
       style={({ pressed }) => [
         styles.tile,
         { width: size, height: size + 10 },
-        record ? styles.solved : locked ? styles.locked : [styles.open, { borderColor: color }],
+        solved ? styles.solved : skipped ? styles.skipped : locked ? styles.locked : [styles.open, { borderColor: color }],
         pressed && styles.pressed,
       ]}
     >
@@ -33,17 +35,21 @@ export function LevelTile({ index: i, size, state, color }: Props) {
         <Ionicons name="lock-closed" size={18} color={INK.inkFaint} />
       ) : (
         <>
-          <Text style={[styles.number, record && { color: INK.paper }]}>{i + 1}</Text>
-          <View style={styles.bulbs}>
-            {[0, 1, 2].map((b) => (
-              <Ionicons
-                key={b}
-                name={record && b < record.stars ? 'bulb' : 'bulb-outline'}
-                size={10}
-                color={record ? (b < record.stars ? INK.bulbLit : 'rgba(239,228,204,0.35)') : INK.inkFaint}
-              />
-            ))}
-          </View>
+          <Text style={[styles.number, solved && { color: INK.paper }]}>{i + 1}</Text>
+          {skipped ? (
+            <Ionicons name="play-skip-forward" size={11} color={INK.inkSoft} accessibilityLabel="Skipped" />
+          ) : (
+            <View style={styles.bulbs}>
+              {[0, 1, 2].map((b) => (
+                <Ionicons
+                  key={b}
+                  name={solved && b < record!.stars ? 'bulb' : 'bulb-outline'}
+                  size={10}
+                  color={solved ? (b < record!.stars ? INK.bulbLit : 'rgba(239,228,204,0.35)') : INK.inkFaint}
+                />
+              ))}
+            </View>
+          )}
         </>
       )}
     </Pressable>
@@ -54,6 +60,7 @@ const styles = StyleSheet.create({
   tile: { borderRadius: 3, alignItems: 'center', justifyContent: 'center', gap: 3 },
   open: { borderWidth: 1.5, backgroundColor: 'rgba(239,228,204,0.45)' },
   solved: { backgroundColor: INK.ink },
+  skipped: { borderWidth: 1.5, borderStyle: 'dashed', borderColor: INK.ink },
   locked: { borderWidth: 1, borderColor: INK.inkFaint },
   pressed: { opacity: 0.7 },
   number: { fontFamily: FONT.numeral, fontSize: 20, color: INK.ink, fontVariant: ['tabular-nums'] },

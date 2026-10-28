@@ -15,17 +15,19 @@ interface ScreenProps {
   /** Show the back arrow (every screen except Home). */
   back?: boolean;
   scroll?: boolean;
+  /** Count taps toward the tap-based interstitial (off where touches are drawing, not tapping). */
+  countTaps?: boolean;
   children: ReactNode;
 }
 
-export function MenuScreen({ title, back = true, scroll = true, children }: ScreenProps) {
+export function MenuScreen({ title, back = true, scroll = true, countTaps = true, children }: ScreenProps) {
   const insets = useSafeAreaInsets();
   const body = (
     <View style={[styles.body, { paddingBottom: 24 }]}>{children}</View>
   );
   return (
     // Every tap on a menu screen (buttons or empty space) counts toward the interstitial.
-    <View style={[styles.root, { paddingTop: insets.top + 8, paddingBottom: insets.bottom }]} onTouchEnd={onScreenTap}>
+    <View style={[styles.root, { paddingTop: insets.top + 8, paddingBottom: insets.bottom }]} onTouchEnd={countTaps ? onScreenTap : undefined}>
       {(back || title) && (
         <View style={styles.bar}>
           {back ? (

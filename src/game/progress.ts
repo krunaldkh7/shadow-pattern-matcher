@@ -9,7 +9,9 @@ import { TIERS } from './tiers';
  */
 
 export interface LevelRecord {
-  stars: number; // best 1..3
+  stars: number; // best 1..3 (0 when only skipped)
+  /** Skipped with a reward video rather than solved; solving it later clears this. */
+  skipped?: boolean;
   bestSeconds: number;
 }
 
@@ -58,11 +60,21 @@ export const progress = {
     const prev = state.levels[index];
     const record: LevelRecord = {
       stars: Math.max(prev?.stars ?? 0, stars),
-      bestSeconds: prev ? Math.min(prev.bestSeconds, seconds) : seconds,
+      bestSeconds: prev && !prev.skipped ? Math.min(prev.bestSeconds, seconds) : seconds,
     };
     commit({
       ...state,
       levels: { ...state.levels, [index]: record },
+      unlocked: Math.min(LEVEL_COUNT - 1, Math.max(state.unlocked, index + 1)),
+    });
+  },
+
+  /** Skipped with a reward video: opens the next level; never overwrites a real solve. */
+  recordSkip(index: number) {
+    if (state.levels[index]) return;
+    commit({
+      ...state,
+      levels: { ...state.levels, [index]: { stars: 0, bestSeconds: 0, skipped: true } },
       unlocked: Math.min(LEVEL_COUNT - 1, Math.max(state.unlocked, index + 1)),
     });
   },

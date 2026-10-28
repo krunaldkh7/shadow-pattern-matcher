@@ -4,7 +4,9 @@ import Animated, { FadeOut, Keyframe } from 'react-native-reanimated';
 import { FONT, INK } from '../theme';
 
 interface Props {
-  levelNumber: number;
+  label: string;
+  /** Primary button text on the final level (or a custom level). */
+  finishLabel?: string;
   shapeName: string;
   bulbsLeft: number;
   hintsUsed: number;
@@ -38,7 +40,8 @@ function formatTime(s: number) {
 }
 
 export function LevelCompleteOverlay({
-  levelNumber,
+  label,
+  finishLabel = 'Gallery complete — back to menu',
   shapeName,
   bulbsLeft,
   hintsUsed,
@@ -58,7 +61,7 @@ export function LevelCompleteOverlay({
           <View style={styles.pinShine} />
         </View>
 
-        <Text style={styles.number}>No. {levelNumber}</Text>
+        <Text style={styles.number}>{label}</Text>
         <Text style={styles.title}>{shapeName}</Text>
         <Text style={styles.medium}>Gold wire and a single spotlight</Text>
 
@@ -86,7 +89,7 @@ export function LevelCompleteOverlay({
           onPress={isLast ? onMenu : onNext}
           style={({ pressed }) => [styles.primary, pressed && styles.primaryPressed]}
         >
-          <Text style={styles.primaryText}>{isLast ? 'Gallery complete — back to menu' : 'Next level'}</Text>
+          <Text style={styles.primaryText}>{isLast ? finishLabel : 'Next level'}</Text>
         </Pressable>
         <View style={styles.links}>
           <Pressable accessibilityRole="button" onPress={onReplay} hitSlop={8} style={styles.secondary}>

@@ -11,7 +11,8 @@ import {
   UNDO_DURATION,
   WARM_TICKS,
 } from './constants';
-import { generateLevel, LEVEL_COUNT, type LevelData } from './levels';
+import { generateCustomLevel, generateLevel, LEVEL_COUNT, type LevelData } from './levels';
+import type { ShapeDef } from './shapes';
 import { computeAccuracy, easeInOutCubic, easeOutCubic, projectWire } from './shadowMath';
 import { haptics } from '../utils/haptics';
 
@@ -94,7 +95,11 @@ export class GameEngine {
   private snapshot: UISnapshot;
   private listeners = new Set<() => void>();
 
-  constructor(startLevel = 0) {
+  /** A player-made shape, when this session plays a custom level instead of a gallery level. */
+  readonly custom: ShapeDef | null;
+
+  constructor(startLevel = 0, custom?: ShapeDef) {
+    this.custom = custom ?? null;
     this.loadLevel(startLevel);
     this.snapshot = this.buildSnapshot();
   }
@@ -102,7 +107,7 @@ export class GameEngine {
   // ───────────────────────────── level flow ─────────────────────────────
 
   loadLevel(index: number) {
-    this.level = generateLevel(index);
+    this.level = this.custom ? generateCustomLevel(this.custom) : generateLevel(index);
     this.quat.copy(this.level.startQuat);
     this.projected = new Float32Array(this.level.targetSamples.length);
     this.history = [];
@@ -124,6 +129,7 @@ export class GameEngine {
   }
 
   get isLastLevel() {
+    if (this.custom) return true;
     return this.level.index >= LEVEL_COUNT - 1;
   }
 

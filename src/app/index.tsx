@@ -134,6 +134,7 @@ export default function Home() {
             <MenuButton icon="help-circle-outline" label="How to play" onPress={() => router.push('/how-to-play')} />
           </View>
         </View>
+        <MenuButton icon="brush-outline" label="My levels" sublabel="Draw your own puzzle" onPress={() => router.push('/my-levels')} />
       </Animated.View>
     </MenuScreen>
   );

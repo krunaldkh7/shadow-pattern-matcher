@@ -4,7 +4,7 @@ import { FONT, INK } from '../theme';
 import { MenuButton } from './MenuKit';
 
 interface Props {
-  levelNumber: number;
+  label: string;
   onResume: () => void;
   onRestart: () => void;
   onLevels: () => void;
@@ -26,11 +26,11 @@ function confirmExit() {
 }
 
 /** Paused: the wall dims and a placard offers the way out. Blocks all touches below. */
-export function PauseOverlay({ levelNumber, onResume, onRestart, onLevels, onHome, onSettings }: Props) {
+export function PauseOverlay({ label, onResume, onRestart, onLevels, onHome, onSettings }: Props) {
   return (
     <Animated.View entering={FadeIn.duration(160)} exiting={FadeOut.duration(140)} style={styles.layer}>
       <View style={styles.card}>
-        <Text style={styles.small}>No. {levelNumber}</Text>
+        <Text style={styles.small}>{label}</Text>
         <Text style={styles.title}>Paused</Text>
         <View style={styles.buttons}>
           <MenuButton variant="primary" icon="play" label="Resume" onPress={onResume} />

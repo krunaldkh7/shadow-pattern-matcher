@@ -51,6 +51,7 @@ export default function RootLayout() {
             <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: WALL }, animation: 'fade' }}>
               <Stack.Screen name="intro" options={{ gestureEnabled: false }} />
               <Stack.Screen name="play/[level]" options={{ gestureEnabled: false }} />
+              <Stack.Screen name="play/custom/[id]" options={{ gestureEnabled: false }} />
               <Stack.Screen name="how-to-play" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
             </Stack>
           ) : null}

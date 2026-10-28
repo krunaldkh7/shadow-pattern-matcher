@@ -1,13 +1,20 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState, BackHandler, StyleSheet, View } from 'react-native';
+import { Alert, AppState, BackHandler, StyleSheet, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AdBanner } from '../../ads/AdBanner';
 import { BonusOffer } from '../../ads/BonusOffer';
-import { onLevelSolvedNavigate, setInGame, useRewardedInterstitialReady } from '../../ads/googleAds';
+import {
+  onLevelSolvedNavigate,
+  setInGame,
+  showRewarded,
+  useRewardedAvailable,
+  useRewardedInterstitialReady,
+} from '../../ads/googleAds';
 import { COLORS } from '../../game/constants';
 import { GameEngine } from '../../game/GameEngine';
+import { customLevels, toShape, type CustomLevel } from '../../game/customLevels';
 import { progress } from '../../game/progress';
 import { tierOf } from '../../game/tiers';
 import { useGameUI } from '../../hooks/useGameUI';
@@ -28,8 +35,8 @@ const CONTROLS_HEIGHT = 96;
  * The 3D canvas fills the screen and owns all touch input; the HUD floats on
  * top with pointerEvents="box-none" so only its buttons intercept touches.
  */
-export function GameScreen({ startLevel }: { startLevel: number }) {
-  const [engine] = useState(() => new GameEngine(startLevel));
+export function GameScreen({ startLevel, custom }: { startLevel: number; custom?: CustomLevel }) {
+  const [engine] = useState(() => new GameEngine(startLevel, custom ? toShape(custom) : undefined));
   const ui = useGameUI(engine);
   const hint = useHintAccess(engine, ui);
   const gesture = useRotationGestures(engine);
@@ -50,18 +57,23 @@ export function GameScreen({ startLevel }: { startLevel: number }) {
   const bonusForThis = bonus.level === ui.levelNumber ? bonus.state : null;
   const playing = ui.status === 'playing';
   const levelIndex = ui.levelNumber - 1;
+  const label = custom ? custom.name : `No. ${ui.levelNumber}`;
+  // Where "Levels" / "All levels" lead: the level's gallery, or the player's own list.
+  const menuHref = custom ? '/my-levels' : `/tier/${tierOf(levelIndex).id}`;
 
   // Save the result once per solve (status flips to 'success' at the snap).
   useEffect(() => {
-    if (ui.status === 'success') progress.recordWin(levelIndex, ui.stars, ui.solveSeconds);
-  }, [ui.status, levelIndex, ui.stars, ui.solveSeconds]);
+    if (ui.status !== 'success') return;
+    if (custom) customLevels.recordWin(custom.id, ui.stars, ui.solveSeconds);
+    else progress.recordWin(levelIndex, ui.stars, ui.solveSeconds);
+  }, [ui.status, levelIndex, ui.stars, ui.solveSeconds, custom]);
 
   // Offer the bonus once the card is up, only if bulbs were spent and an ad is ready.
   useEffect(() => {
-    if (ui.status === 'complete' && bonusForThis === null && ui.bulbsLeft < 3 && bonusReady) {
+    if (!custom && ui.status === 'complete' && bonusForThis === null && ui.bulbsLeft < 3 && bonusReady) {
       setBonus({ level: ui.levelNumber, state: 'offer' });
     }
-  }, [ui.status, ui.levelNumber, ui.bulbsLeft, bonusReady, bonusForThis]);
+  }, [custom, ui.status, ui.levelNumber, ui.bulbsLeft, bonusReady, bonusForThis]);
 
   const earnBonus = useCallback(() => {
     progress.recordWin(levelIndex, 3, ui.solveSeconds);
@@ -72,6 +84,33 @@ export function GameScreen({ startLevel }: { startLevel: number }) {
   const pause = () => {
     engine.pause();
     setPaused(true);
+  };
+
+  // Skip: watch a reward video to mark this gallery level skipped and move on.
+  const skipAvailable = useRewardedAvailable() && !custom;
+  const [skipping, setSkipping] = useState(false);
+  const skipLevel = () => {
+    if (!playing || skipping) return;
+    Alert.alert('Skip this level?', 'Watch a short video to skip it. It stays open to solve later.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Watch video',
+        onPress: async () => {
+          setSkipping(true);
+          engine.pause();
+          const result = await showRewarded();
+          engine.resume();
+          setSkipping(false);
+          if (result === 'earned') {
+            progress.recordSkip(levelIndex);
+            if (engine.isLastLevel) router.dismissTo(menuHref);
+            else engine.nextLevel();
+          } else if (result === 'unavailable') {
+            Alert.alert('No video right now', 'A video couldn’t be loaded. Check your connection and try again in a moment.');
+          }
+        },
+      },
+    ]);
   };
   const resume = () => {
     engine.resume();
@@ -121,7 +160,7 @@ export function GameScreen({ startLevel }: { startLevel: number }) {
 
       <View pointerEvents="box-none" style={[styles.top, { paddingTop: insets.top + 4 }]}>
         <Header
-          levelNumber={ui.levelNumber}
+          label={label}
           accuracy={ui.accuracy}
           solved={!playing}
           hintDisabled={!playing || hint.busy}
@@ -147,13 +186,16 @@ export function GameScreen({ startLevel }: { startLevel: number }) {
             onHint={hint.ghost}
             hintMode={hint.busy ? 'none' : hint.ghostMode}
             hintsLeft={ui.ghostsLeft}
+            onSkip={skipAvailable ? skipLevel : undefined}
+            skipDisabled={hint.busy || skipping}
           />
         </View>
       )}
 
       {ui.status === 'complete' && (
         <LevelCompleteOverlay
-          levelNumber={ui.levelNumber}
+          label={label}
+          finishLabel={custom ? 'Back to my levels' : undefined}
           shapeName={ui.shapeName}
           bulbsLeft={bonusForThis === 'earned' ? 3 : ui.bulbsLeft}
           hintsUsed={ui.hintsUsed}
@@ -165,7 +207,7 @@ export function GameScreen({ startLevel }: { startLevel: number }) {
             engine.nextLevel();
           }}
           onReplay={() => engine.replayLevel()}
-          onMenu={() => router.dismissTo(`/tier/${tierOf(levelIndex).id}`)}
+          onMenu={() => router.dismissTo(menuHref)}
         />
       )}
 
@@ -183,13 +225,13 @@ export function GameScreen({ startLevel }: { startLevel: number }) {
 
       {paused && (
         <PauseOverlay
-          levelNumber={ui.levelNumber}
+          label={label}
           onResume={resume}
           onRestart={() => {
             engine.replayLevel();
             setPaused(false);
           }}
-          onLevels={() => router.dismissTo(`/tier/${tierOf(levelIndex).id}`)}
+          onLevels={() => router.dismissTo(menuHref)}
           onHome={() => router.dismissTo('/')}
           onSettings={() => router.push('/settings')}
         />

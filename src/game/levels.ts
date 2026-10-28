@@ -64,8 +64,18 @@ export const LEVEL_COUNT = LEVEL_SHAPES.length;
 
 export function generateLevel(index: number): LevelData {
   const shape = LEVEL_SHAPES[Math.min(index, LEVEL_COUNT - 1)];
-  const rand = mulberry32(0x5eed + index * 7919);
-  const difficulty = Math.min(1, index / (LEVEL_COUNT - 1));
+  return buildLevel(shape, index, Math.min(1, index / (LEVEL_COUNT - 1)), 0x5eed + index * 7919);
+}
+
+/** A player-made level: medium difficulty, scrambled the same way every time it's played. */
+export function generateCustomLevel(shape: ShapeDef): LevelData {
+  let seed = 0;
+  for (const ch of shape.id) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
+  return buildLevel(shape, -1, 0.35, seed);
+}
+
+function buildLevel(shape: ShapeDef, index: number, difficulty: number, seed: number): LevelData {
+  const rand = mulberry32(seed);
 
   // Depth amplitude grows with difficulty → the wire looks more scrambled.
   const depthAmp = 0.32 + 0.3 * difficulty;

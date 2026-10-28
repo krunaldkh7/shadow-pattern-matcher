@@ -68,6 +68,9 @@ function trackFullscreen(ad: { addAdEventListener: AdsModule['InterstitialAd']['
   });
 }
 
+/** How long a paid hint or skip waits for its ad to finish loading. */
+const LOAD_WAIT_MS = 8000;
+
 // ─────────────────────────────── interstitial ───────────────────────────────
 
 let interstitial: import('react-native-google-mobile-ads').InterstitialAd | null = null;
@@ -77,14 +80,72 @@ let lastInterstitialAt = 0;
 function loadInterstitial(config: AdConfig) {
   const m = ads();
   const id = unit('interstitial', config.interstitialUnitId);
-  if (!m || !id || (config.interstitialEveryNLevels === 0 && config.interstitialTapsMax === 0)) return;
+  // Always loaded when configured: menu taps, solves and paid hints all use it.
+  if (!m || !id) return;
   const ad = m.InterstitialAd.createForAdRequest(id);
   trackFullscreen(ad);
-  // Preload the next one as soon as this one is dismissed; a failed load just waits for the next solve.
-  ad.addAdEventListener(m.AdEventType.CLOSED, () => ad.load());
-  ad.addAdEventListener(m.AdEventType.ERROR, () => {});
-  ad.load();
+  ad.addAdEventListener(m.AdEventType.LOADED, () => {
+    interstitialLoading = false;
+  });
+  // Preload the next one as soon as this one is dismissed.
+  ad.addAdEventListener(m.AdEventType.CLOSED, () => requestInterstitial());
+  ad.addAdEventListener(m.AdEventType.ERROR, (e) => {
+    interstitialLoading = false;
+    log('interstitial failed to load', e);
+  });
   interstitial = ad;
+  interstitialListeners.forEach((l) => l());
+  requestInterstitial();
+}
+
+let interstitialLoading = false;
+const interstitialListeners = new Set<() => void>();
+
+function requestInterstitial() {
+  if (!interstitial || interstitial.loaded || interstitialLoading) return;
+  interstitialLoading = true;
+  interstitial.load();
+}
+
+/** Whether interstitials are switched on, so a hint button can offer one (it may still be loading). */
+export function useInterstitialAvailable() {
+  return useSyncExternalStore(
+    (l) => {
+      interstitialListeners.add(l);
+      return () => interstitialListeners.delete(l);
+    },
+    () => interstitial !== null && adConfig.get().showAds,
+    () => interstitial !== null && adConfig.get().showAds,
+  );
+}
+
+/**
+ * Paid hint: show the interstitial (loading one first if needed, up to a few
+ * seconds) and resolve 'earned' once it has been closed.
+ */
+export async function showInterstitialForHint(): Promise<RewardResult> {
+  const m = ads();
+  const ad = interstitial;
+  if (!m || !ad || fullscreenShowing) return 'unavailable';
+  if (!ad.loaded) {
+    requestInterstitial();
+    const started = Date.now();
+    while (!ad.loaded && Date.now() - started < LOAD_WAIT_MS) {
+      await new Promise((r) => setTimeout(r, 250));
+    }
+    if (!ad.loaded) return 'unavailable';
+  }
+  return new Promise((resolve) => {
+    const offClose = ad.addAdEventListener(m.AdEventType.CLOSED, () => {
+      offClose();
+      resolve('earned');
+    });
+    ad.show().catch((e) => {
+      log('interstitial failed to show', e);
+      offClose();
+      resolve('unavailable');
+    });
+  });
 }
 
 let tapsSinceLast = 0;
@@ -220,8 +281,6 @@ export function useRewardedAvailable() {
     () => rewarded !== null && adConfig.get().showAds,
   );
 }
-
-const LOAD_WAIT_MS = 8000;
 
 /** Wait until the rewarded ad has loaded (starting a load if needed), or give up after a few seconds. */
 function waitForRewarded(): Promise<boolean> {

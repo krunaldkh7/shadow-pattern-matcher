@@ -9,13 +9,16 @@ interface Props {
   hintMode: HintMode;
   /** Free ghost hints left this level. */
   hintsLeft: number;
+  /** Skip this level with a reward video; the button is hidden when undefined. */
+  onSkip?: () => void;
+  skipDisabled?: boolean;
   onUndo: () => void;
   onReset: () => void;
   onHint: () => void;
 }
 
 /** Bottom controls: Undo last gesture · Reset level · Hint (ghost alignment guide). */
-export function ControlBar({ canUndo, disabled, ghostActive, hintMode, hintsLeft, onUndo, onReset, onHint }: Props) {
+export function ControlBar({ canUndo, disabled, ghostActive, hintMode, hintsLeft, onSkip, skipDisabled, onUndo, onReset, onHint }: Props) {
   return (
     <View style={styles.row}>
       <IconButton
@@ -40,6 +43,15 @@ export function ControlBar({ canUndo, disabled, ghostActive, hintMode, hintsLeft
         active={ghostActive}
         accessibilityLabel={hintMode === 'ad' ? 'Watch an ad to see the solved pose' : 'Show the solved pose as a ghost guide, costs one bulb'}
       />
+      {onSkip ? (
+        <IconButton
+          icon="play-skip-forward-outline"
+          label="Skip"
+          onPress={onSkip}
+          disabled={disabled || skipDisabled}
+          accessibilityLabel="Skip this level by watching a video"
+        />
+      ) : null}
     </View>
   );
 }

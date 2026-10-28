@@ -12,7 +12,7 @@ const STEPS: { icon: keyof typeof Ionicons.glyphMap; title: string; body: string
   {
     icon: 'bulb-outline',
     title: 'Keep your bulbs',
-    body: 'Stuck? The bulb turns the wire halfway and uses one of your 3 bulbs — bulbs left are your stars. The eye shows a ghost of the answer, 3 times per level. When either runs out, watch a short video for another hint.',
+    body: 'Stuck? The bulb turns the wire halfway and uses one of your 3 bulbs — bulbs left are your stars. The eye shows a ghost of the answer, 3 times per level. When either runs out, watch a short ad for another hint. Really stuck? Skip the level with a short video.',
   },
 ];
 

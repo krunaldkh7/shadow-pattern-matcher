@@ -22,8 +22,9 @@ How every ad in **Shadow Pattern Matcher** behaves, where to find it, and how to
 | # | Format | Where | When it appears |
 |---|---|---|---|
 | 1 | Banner | Bottom of every menu screen **and** the game screen | Always, once loaded |
-| 2 | Interstitial | Any screen except the game screen | After a random 6–12 taps |
-| 3 | Rewarded | Game screen, both hint buttons | Only after the free hints are used up, when the player taps |
+| 2 | Interstitial (taps) | Any screen except the game screen | After a random 6–12 taps |
+| 3 | Interstitial (paid hint) | Game screen, both hint buttons | Only after a button's 3 free uses are gone, when the player taps |
+| 3b | Rewarded (level skip) | Game screen, **Skip** button | When the player chooses to skip a level |
 | 4 | Rewarded interstitial | "Level solved" card | After a solve where bulbs were spent; 5-second countdown first |
 | 5 | Native advanced | "Choose a gallery" screen, between **Medium** and **Hard** | Always, once loaded |
 | 6 | App open | Full screen | When returning to the app from the background, at most once every 4 hours |
@@ -62,32 +63,49 @@ How every ad in **Shadow Pattern Matcher** behaves, where to find it, and how to
 
 Config: `interstitial_taps_min`, `interstitial_taps_max` (both `0` = off).
 
-## 3. Rewarded (extra hints)
+## 3. Paid hints (interstitial) and Level skip (rewarded)
+
+### Hints → interstitial
 
 **Where:** the game screen. There are two hint buttons, and each has **3 free uses per level**:
 
 | Button | What it does | Free uses | Shown on screen |
 |---|---|---|---|
 | 💡 Lightbulb (top right) | Turns the sculpture halfway to the answer | 3 bulbs (the small bulbs under the button) | Bulbs go dark one by one |
-| 👁 Hint (bottom right) | Shows a see-through "ghost" of the answer for a few seconds | 3 | Label reads `Hint 3/3`, `Hint 2/3`… |
+| 👁 Hint (bottom) | Shows a see-through "ghost" of the answer for a few seconds | 3 | Label reads `Hint 3/3`, `Hint 2/3`… |
 
 **Behaviour:**
 - While free uses remain, **no ad is ever shown**.
 - Once a button's free uses are gone, its icon changes to ▶. The bottom label reads **"Watch ad"**.
-- Tapping ▶ pauses the game timer and plays a reward video. If no video is ready yet, the app tries to load one for up to 8 seconds.
-- **Watch to the end:** the hint is given, and no bulb is used.
-- **Close early:** no hint.
-- **No video available** (offline, no fill): a "No video right now" message appears, and the button stays active so you can retry.
-- While a video is loading or playing, the hint buttons can't be tapped again.
+- Tapping ▶ pauses the game timer and shows an **interstitial**. If none is ready, the app tries to load one for up to 8 seconds.
+- **When the ad is closed**, the hint is given and no bulb is used.
+- **No ad available** (offline, no fill): a "No ad right now" message appears, and the button stays active so you can retry.
+- While an ad is loading or showing, the hint buttons can't be tapped again.
 - Stars for a level equal the bulbs left (minimum 1). Ghost hints never cost a bulb.
 
 **Test:**
 1. Open a level. Tap 💡 three times. Each tap turns the sculpture and darkens one bulb. **No ad.**
-2. Tap 💡 a fourth time. A reward video plays. Watch it fully. The sculpture turns, and the bulbs stay dark.
-3. Tap 💡 again and close the video early. Nothing happens to the sculpture.
-4. Tap 👁 Hint three times (wait for each ghost to fade). The label counts down to `0/3`, then shows "Watch ad".
-5. Tap "Watch ad", watch fully. The ghost appears.
-6. Turn on airplane mode, then tap ▶. After a few seconds, "No video right now" appears.
+2. Tap 💡 a fourth time. An interstitial appears. Close it. The sculpture turns, and the bulbs stay dark.
+3. Tap 👁 Hint three times (wait for each ghost to fade). The label counts down, then shows "Watch ad".
+4. Tap "Watch ad", close the interstitial. The ghost appears.
+5. Turn on airplane mode, then tap ▶. After a few seconds, "No ad right now" appears.
+
+### Level skip → rewarded
+
+**Where:** the game screen, **Skip** button (⏭) next to Hint. Gallery levels only; it is not shown on custom levels or when rewarded ads are off.
+
+**Behaviour:**
+- Tapping Skip asks "Skip this level?" with **Cancel** / **Watch video**.
+- **Watch the video to the end:** the level is marked skipped and the next level opens.
+- **Close early:** nothing happens; you stay on the level.
+- A skipped level shows a ⏭ icon and a dashed border in the level list, and has no bulbs. It stays playable; solving it later replaces the skip with real bulbs.
+- Skipping counts toward the gallery's "solved" total and opens the next level.
+
+**Test:**
+1. Open a level, tap **Skip** → **Watch video**, watch fully. The next level opens.
+2. Go to the level list. The skipped level shows ⏭ with a dashed border; the next level is open.
+3. Tap Skip → **Watch video**, close early. You stay on the same level.
+4. Open the skipped level and solve it. Its tile now shows bulbs.
 
 ## 4. Rewarded interstitial ("Earn all 3 bulbs")
 
@@ -148,6 +166,8 @@ Config: `interstitial_taps_min`, `interstitial_taps_max` (both `0` = off).
 Remember: GitHub can take up to 5 minutes to serve a changed file.
 
 ## Levels (context for testing)
+
+- **My levels** (Home → My levels): players draw their own shape and play it. Custom levels have no Skip button and no "Earn all 3 bulbs" offer; banner and paid hints work as usual.
 
 - Each gallery's **first level is always open**: Easy 1, Medium 34, Hard 67, Expert 100, Master 132.
 - After that, a level opens when the one before it is solved.
