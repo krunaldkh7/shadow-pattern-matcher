@@ -11,7 +11,7 @@
       "bundleIdentifier": "com.krunal.shadowpattern",
       "appleTeamId": "F7X54G99TU",
       "googleServicesFile": "./GoogleService-Info.plist",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "config": {
         "usesNonExemptEncryption": false
       }
