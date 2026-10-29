@@ -12,6 +12,7 @@ import {
   submitScore,
   type LeaderboardEntry,
 } from '../leaderboard/leaderboard';
+import { nameProblem, type NameProblem } from '../leaderboard/nameFilter';
 import { MenuButton, MenuScreen } from '../ui/components/MenuKit';
 import { FONT, INK } from '../ui/theme';
 
@@ -32,9 +33,16 @@ export default function Leaderboard() {
   return <Board total={total} name={state.playerName} />;
 }
 
+const NAME_HINTS: Record<NameProblem, string> = {
+  short: 'At least 2 characters.',
+  blocked: 'Please choose a different name.',
+  contact: 'No emails, links or phone numbers, please.',
+};
+
 function PickName() {
   const [name, setName] = useState('');
-  const valid = name.trim().length >= 2;
+  const problem = nameProblem(name);
+  const valid = problem === null;
   return (
     <MenuScreen title="Leaderboard">
       <Text style={styles.lead}>Pick a name to show next to your points on the global leaderboard.</Text>
@@ -54,12 +62,12 @@ function PickName() {
         label="Join the leaderboard"
         onPress={() => {
           if (!valid) return;
-          progress.setPlayerName(name);
+          progress.setPlayerName(name.trim());
           track('leaderboard_join');
           submitScore();
         }}
       />
-      {!valid && name.length > 0 ? <Text style={styles.hint}>At least 2 characters.</Text> : null}
+      {problem && name.length > 0 ? <Text style={styles.hint}>{NAME_HINTS[problem]}</Text> : null}
     </MenuScreen>
   );
 }
@@ -86,6 +94,7 @@ function Board({ total, name }: { total: number; name: string }) {
   }, [total]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetching the board on open is the point of this screen
     load();
   }, [load]);
 

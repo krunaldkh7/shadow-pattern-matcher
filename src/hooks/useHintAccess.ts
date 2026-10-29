@@ -21,11 +21,11 @@ export function useHintAccess(engine: GameEngine, ui: UISnapshot) {
   const bulbMode = modeFor(ui.bulbsLeft);
   const ghostMode = modeFor(ui.ghostsLeft);
 
-  const request = async (kind: 'bulb' | 'ghost', mode: HintMode, use: (paidWithAd: boolean) => void) => {
+  const request = async (kind: 'bulb' | 'ghost', mode: HintMode, apply: (paidWithAd: boolean) => void) => {
     if (ui.status !== 'playing' || mode === 'none' || busy) return;
     if (mode === 'free') {
       track('hint_used', { kind, paid: false });
-      return use(false);
+      return apply(false);
     }
     setBusy(true);
     engine.pause();
@@ -34,7 +34,7 @@ export function useHintAccess(engine: GameEngine, ui: UISnapshot) {
     setBusy(false);
     if (result === 'earned') {
       track('hint_used', { kind, paid: true });
-      use(true);
+      apply(true);
     }
     else if (result === 'unavailable') {
       Alert.alert('No ad right now', 'An ad couldn’t be loaded for this hint. Check your connection and try again in a moment.');

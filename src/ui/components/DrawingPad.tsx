@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
 import type { Point2, Stroke } from '../../game/shapes';
@@ -38,7 +38,9 @@ export function DrawingPad({ size, strokes, onStrokesChange }: Props) {
   const [current, setCurrent] = useState<Pt[]>([]);
   // Latest props for the gesture callbacks, which may hold an older render's closure.
   const latest = useRef({ strokes, onStrokesChange });
-  latest.current = { strokes, onStrokesChange };
+  useLayoutEffect(() => {
+    latest.current = { strokes, onStrokesChange };
+  });
 
   const finish = (pts: Pt[]) => {
     setCurrent([]);

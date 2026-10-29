@@ -56,6 +56,7 @@ export default function Intro() {
     runOnJS: true,
     enabled: !solved,
     onBegin: () => {
+      // eslint-disable-next-line react-hooks/immutability -- Reanimated shared values are meant to be written
       nudge.value = withTiming(0, { duration: 200 });
     },
     onUpdate: (e) => {

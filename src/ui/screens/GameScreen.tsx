@@ -1,5 +1,5 @@
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Alert, AppState, BackHandler, StyleSheet, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -68,7 +68,9 @@ export function GameScreen({ startLevel, custom }: { startLevel: number; custom?
     ? { level: 0, tier: 'custom', custom: true }
     : { level: ui.levelNumber, tier: tierOf(levelIndex).id, custom: false };
   const levelParamsRef = useRef(levelParams);
-  levelParamsRef.current = levelParams;
+  useLayoutEffect(() => {
+    levelParamsRef.current = levelParams;
+  });
 
   useEffect(() => {
     track('level_start', levelParamsRef.current);
@@ -90,6 +92,7 @@ export function GameScreen({ startLevel, custom }: { startLevel: number; custom?
   // Offer the bonus once the card is up, only if bulbs were spent and an ad is ready.
   useEffect(() => {
     if (!custom && ui.status === 'complete' && bonusForThis === null && ui.bulbsLeft < 3 && bonusReady) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- the offer appears once, when the solved card does
       setBonus({ level: ui.levelNumber, state: 'offer' });
     }
   }, [custom, ui.status, ui.levelNumber, ui.bulbsLeft, bonusReady, bonusForThis]);
@@ -141,7 +144,9 @@ export function GameScreen({ startLevel, custom }: { startLevel: number; custom?
   // The solve clock only runs while the app is on screen: stop it in the
   // background and restart it on return, unless the player had paused.
   const pausedRef = useRef(paused);
-  pausedRef.current = paused;
+  useLayoutEffect(() => {
+    pausedRef.current = paused;
+  });
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'background') engine.pause();
@@ -153,7 +158,9 @@ export function GameScreen({ startLevel, custom }: { startLevel: number; custom?
   // Android back: opens the pause menu (or closes it) instead of dropping the level.
   // Once the level is solved, back leaves to the gallery as usual.
   const statusRef = useRef(ui.status);
-  statusRef.current = ui.status;
+  useLayoutEffect(() => {
+    statusRef.current = ui.status;
+  });
   useFocusEffect(
     useCallback(() => {
       const sub = BackHandler.addEventListener('hardwareBackPress', () => {
