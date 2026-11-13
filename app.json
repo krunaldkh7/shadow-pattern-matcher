@@ -2,7 +2,7 @@
   "expo": {
     "name": "Shadow Pattern Matcher",
     "slug": "shadow-pattern-matcher",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
