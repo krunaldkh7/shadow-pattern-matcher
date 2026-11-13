@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AdBanner } from '../../ads/AdBanner';
-import { onScreenTap } from '../../ads/googleAds';
+import { onScreenTap } from '../../ads/unityAds';
 import { FONT, INK } from '../theme';
 
 /** The sand tile of the 3D wall, flat: menus are written on the same wall as the game. */

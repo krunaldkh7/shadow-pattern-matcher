@@ -14,6 +14,11 @@
       "buildNumber": "2",
       "config": {
         "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
       }
     },
     "android": {
@@ -26,7 +31,10 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.krunal.shadowpattern",
       "versionCode": 1,
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "com.google.android.gms.permission.AD_ID"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -47,24 +55,14 @@
         "expo-build-properties",
         {
           "android": {
-            "extraProguardRules": "# expo-gl's GLView extends TextureView (not ExpoView), so Expo's keep rules miss its constructor.\n-keep class expo.modules.gl.** { *; }\n# Room builds databases by reflection (e.g. WorkManager's WorkDatabase_Impl, pulled in by Google Mobile Ads).\n-keep class * extends androidx.room.RoomDatabase { <init>(); }"
+            "extraProguardRules": "# expo-gl's GLView extends TextureView (not ExpoView), so Expo's keep rules miss its constructor.\n-keep class expo.modules.gl.** { *; }\n# Room builds databases by reflection (e.g. WorkManager's WorkDatabase_Impl, pulled in by the ads SDKs).\n-keep class * extends androidx.room.RoomDatabase { <init>(); }"
           },
           "ios": {
             "useFrameworks": "dynamic"
           }
         }
       ],
-      [
-        "react-native-google-mobile-ads",
-        {
-          "androidAppId": "ca-app-pub-3792779328473568~1138545515",
-          "iosAppId": "ca-app-pub-3792779328473568~6037976418",
-          "userTrackingUsageDescription": "This lets us show you ads that are more relevant to you. The game works the same either way.",
-          "skAdNetworkItems": [
-            "cstr6suwn9.skadnetwork"
-          ]
-        }
-      ],
+      "./plugins/withUnityAds",
       "@react-native-firebase/app",
       "@react-native-firebase/analytics",
       [
@@ -85,7 +83,7 @@
       "eas": {
         "projectId": "b9906c95-fae9-4e0e-ae79-065c6be972df"
       },
-      "adsConfigUrl": "https://raw.githubusercontent.com/krunaldkh7/shadow-pattern-matcher-config/main/ads.json",
+      "adsConfigUrl": "https://raw.githubusercontent.com/krunaldkh7/shadow-pattern-matcher-config/main/unity-ads.json",
       "firebase": {
         "apiKey": "AIzaSyAQOsmXZ6fbnIeWBHLpSyVHep5JWZRupfI",
         "authDomain": "shadow-pattern.firebaseapp.com",

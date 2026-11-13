@@ -8,35 +8,32 @@ import { Platform } from 'react-native';
  * config says otherwise, so a failed, slow or offline fetch can never show
  * ads with bad IDs or crash the app.
  *
- * Remote JSON (every key optional; a format is on only when its unit ID is set):
+ * Remote JSON (every key optional; ads need an app key, and a format is on only when its unit ID is set):
  * {
  *   "show_ads": true,
- *   "banner_ad_unit_id": "ca-app-pub-…/…",
+ *   "app_key": "…",
+ *   "banner_ad_unit_id": "…",
  *   "interstitial_ad_unit_id": "…",
  *   "rewarded_ad_unit_id": "…",
- *   "rewarded_interstitial_ad_unit_id": "…",
- *   "app_open_ad_unit_id": "…",
- *   "native_ad_unit_id": "…",
  *   "interstitial_taps_min": 6,
  *   "interstitial_taps_max": 12,
  *   "interstitial_every_n_levels": 0,
  *   "interstitial_start_after_level": 0,
  *   "interstitial_min_interval_seconds": 0,
- *   "app_open_cooldown_minutes": 240,
- *   "android": { …unit IDs… },
- *   "ios": { …unit IDs… }
+ *   "return_interstitial_cooldown_minutes": 240,
+ *   "android": { "app_key": …, …unit IDs… },
+ *   "ios": { "app_key": …, …unit IDs… }
  * }
- * Per-platform blocks override the top-level IDs (AdMob unit IDs differ per platform).
+ * Per-platform blocks override the top-level values (each platform is its own app in Unity LevelPlay).
  */
 
 export interface AdConfig {
   showAds: boolean;
+  /** Unity LevelPlay app key for this platform. */
+  appKey: string;
   bannerUnitId: string;
   interstitialUnitId: string;
   rewardedUnitId: string;
-  rewardedInterstitialUnitId: string;
-  appOpenUnitId: string;
-  nativeUnitId: string;
   /** Interstitial after a random number of taps (between min and max) anywhere outside the game screen; 0 = never. */
   interstitialTapsMin: number;
   interstitialTapsMax: number;
@@ -46,29 +43,28 @@ export interface AdConfig {
   interstitialStartAfterLevel: number;
   /** Minimum gap between two interstitials. */
   interstitialMinIntervalSec: number;
-  /** Minimum gap between two app-open ads. */
-  appOpenCooldownMin: number;
+  /** Minimum gap between two interstitials shown on returning to the app (0 = never). */
+  returnInterstitialCooldownMin: number;
 }
 
 /** Safe fallback: no ads, no IDs. */
 export const ADS_OFF: AdConfig = {
   showAds: false,
+  appKey: '',
   bannerUnitId: '',
   interstitialUnitId: '',
   rewardedUnitId: '',
-  rewardedInterstitialUnitId: '',
-  appOpenUnitId: '',
-  nativeUnitId: '',
   interstitialTapsMin: 6,
   interstitialTapsMax: 12,
   interstitialEveryNLevels: 0,
   interstitialStartAfterLevel: 0,
   interstitialMinIntervalSec: 0,
-  appOpenCooldownMin: 240,
+  returnInterstitialCooldownMin: 240,
 };
 
 const FETCH_TIMEOUT_MS = 6000;
-const AD_UNIT_RE = /^ca-app-pub-\d+\/\d+$/;
+/** LevelPlay app keys and ad unit IDs are short alphanumeric strings. */
+const ID_RE = /^[A-Za-z0-9]{4,64}$/;
 
 const CONFIG_URL: string | undefined = (Constants.expoConfig?.extra as { adsConfigUrl?: string } | undefined)
   ?.adsConfigUrl;
@@ -80,7 +76,7 @@ function parse(raw: unknown): AdConfig {
   const platform = (root[Platform.OS] ?? {}) as Record<string, unknown>;
   const id = (key: string) => {
     const v = platform[key] ?? root[key];
-    return typeof v === 'string' && AD_UNIT_RE.test(v.trim()) ? v.trim() : '';
+    return typeof v === 'string' && ID_RE.test(v.trim()) ? v.trim() : '';
   };
   const count = (key: string, fallback: number) => {
     const n = Number(root[key]);
@@ -89,18 +85,16 @@ function parse(raw: unknown): AdConfig {
 
   const config: AdConfig = {
     showAds: root.show_ads === true,
+    appKey: id('app_key'),
     bannerUnitId: id('banner_ad_unit_id'),
     interstitialUnitId: id('interstitial_ad_unit_id'),
     rewardedUnitId: id('rewarded_ad_unit_id'),
-    rewardedInterstitialUnitId: id('rewarded_interstitial_ad_unit_id'),
-    appOpenUnitId: id('app_open_ad_unit_id'),
-    nativeUnitId: id('native_ad_unit_id'),
     interstitialTapsMin: 0,
     interstitialTapsMax: 0,
     interstitialEveryNLevels: count('interstitial_every_n_levels', ADS_OFF.interstitialEveryNLevels),
     interstitialStartAfterLevel: count('interstitial_start_after_level', ADS_OFF.interstitialStartAfterLevel),
     interstitialMinIntervalSec: count('interstitial_min_interval_seconds', ADS_OFF.interstitialMinIntervalSec),
-    appOpenCooldownMin: count('app_open_cooldown_minutes', ADS_OFF.appOpenCooldownMin),
+    returnInterstitialCooldownMin: count('return_interstitial_cooldown_minutes', ADS_OFF.returnInterstitialCooldownMin),
   };
   // Tap range: older configs may still send a single interstitial_every_n_clicks.
   const legacyTaps = count('interstitial_every_n_clicks', -1);
@@ -108,15 +102,9 @@ function parse(raw: unknown): AdConfig {
   config.interstitialTapsMin = tapsMin;
   config.interstitialTapsMax = Math.max(tapsMin, count('interstitial_taps_max', legacyTaps >= 0 ? legacyTaps : ADS_OFF.interstitialTapsMax));
 
-  const anyUnit =
-    config.bannerUnitId ||
-    config.interstitialUnitId ||
-    config.rewardedUnitId ||
-    config.rewardedInterstitialUnitId ||
-    config.appOpenUnitId ||
-    config.nativeUnitId;
-  // "On" with no usable ID for any format is the same as off.
-  if (!anyUnit) config.showAds = false;
+  const anyUnit = config.bannerUnitId || config.interstitialUnitId || config.rewardedUnitId;
+  // "On" without an app key or any usable unit ID is the same as off.
+  if (!config.appKey || !anyUnit) config.showAds = false;
   return config;
 }
 

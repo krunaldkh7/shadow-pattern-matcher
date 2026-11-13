@@ -1,7 +1,7 @@
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { FONT, INK } from '../ui/theme';
-import { useAdLoadingVeil } from './googleAds';
+import { useAdLoadingVeil } from './unityAds';
 
 /** Full-screen "Loading ad…" shown for a moment before an interstitial opens. */
 export function AdLoadingVeil() {

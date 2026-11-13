@@ -1,8 +1,8 @@
 /**
  * Store-required links. The App Store needs a privacy policy and a support
- * URL; Google Play needs a privacy policy (AdMob requires one too). The pages
+ * URL; Google Play needs a privacy policy (Unity Ads requires one too). The pages
  * are on the developer's blog, so they can be edited without an app release.
- * app-ads.txt for AdMob lives separately on https://krunaldkh7.github.io.
+ * app-ads.txt for Unity Ads lives separately on https://krunaldkh7.github.io.
  */
 const BLOG = 'https://coresyncro.blogspot.com/2026/10';
 

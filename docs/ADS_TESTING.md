@@ -6,12 +6,16 @@ How every ad in **Shadow Pattern Matcher** behaves, where to find it, and how to
 
 **Which build to use.** Ads only appear in a real app build (an APK on Android, or the installed app on iPhone). **Expo Go never shows ads.** That is by design and is not a bug.
 
-**Test ads only.** Every build used for testing shows Google's **test ads**, labelled "Test Ad". Tapping them is safe. Never tap real ads on your own device: AdMob can suspend the account for it.
+**Ads come from Unity Ads** (through Unity LevelPlay). There are no built-in test IDs, so **register every test phone as a test device** first: Unity LevelPlay dashboard → **Settings → Test devices** (add the device's advertising ID), or turn on **Test mode** for the app in the Unity Ads dashboard. Test ads are labelled as test ads and are safe to tap. Never tap real ads on your own device: Unity can suspend the account for it.
+
+**Privacy prompts.** On a phone set to a European time zone, the first launch with ads on asks "Personalised ads?" (Allow / Don't allow); the answer can be changed in Settings → **Ad privacy choices**. On iPhone the Apple tracking prompt follows.
 
 **Where the settings come from.** The app downloads its ad settings from GitHub each time it **starts**:
-`https://github.com/krunaldkh7/shadow-pattern-matcher-config` → `ads.json`
+`https://github.com/krunaldkh7/shadow-pattern-matcher-config` → `unity-ads.json`
 
-- A change to `ads.json` applies the next time the app is **fully closed and reopened**, not while it is running.
+Each platform has its own `app_key` and ad unit IDs in its `android` / `ios` block (from the LevelPlay dashboard). Ads stay off until `show_ads` is `true` **and** the platform has an `app_key` and at least one unit ID. (`ads.json` in the same repo is read only by older builds that used AdMob.)
+
+- A change to `unity-ads.json` applies the next time the app is **fully closed and reopened**, not while it is running.
 - GitHub can take up to **5 minutes** to serve the new file.
 - If the file can't be downloaded (offline, timeout after 6 seconds, broken JSON), **all ads are off** for that session. The game still works normally.
 
@@ -23,12 +27,12 @@ How every ad in **Shadow Pattern Matcher** behaves, where to find it, and how to
 |---|---|---|---|
 | 1 | Banner | Bottom of every menu screen **and** the game screen | Always, once loaded |
 | 2 | Interstitial (taps) | Any screen except the game screen | After a random 6–12 taps |
-| 2b | Interstitial (levels) | Game screen, on **Next level** | After every 3 solved levels |
-| 3 | Interstitial (paid hint) | Game screen, both hint buttons | Only after a button's 3 free uses are gone, when the player taps |
+| 2b | Interstitial (levels) | Game screen, on **Next level** | After every 2 solved levels |
+| 3 | Rewarded (paid hint) | Game screen, both hint buttons | Only after a button's 3 free uses are gone, when the player taps |
 | 3b | Rewarded (level skip) | Game screen, **Skip** button | When the player chooses to skip a level |
-| 4 | Rewarded interstitial | "Level solved" card | After a solve where bulbs were spent; 5-second countdown first |
-| 5 | Native advanced | "Choose a gallery" screen, between **Medium** and **Hard** | Always, once loaded |
-| 6 | App open | Full screen | When returning to the app from the background, at most once every 4 hours |
+| 4 | Rewarded (bonus bulbs) | "Level solved" card | After a solve where bulbs were spent; 5-second countdown first |
+| 5 | Medium rectangle (300×250) | "Choose a gallery" screen, between **Medium** and **Hard** | Always, once loaded |
+| 6 | Interstitial (return) | Full screen | When returning to the app from the background, at most once every 4 hours |
 
 ---
 
@@ -41,7 +45,7 @@ How every ad in **Shadow Pattern Matcher** behaves, where to find it, and how to
 - If a banner fails to load (or a refresh fails), it takes up no space and tries again after 30 seconds.
 
 **Test:**
-1. Open the app and wait a few seconds on Home. A "Test Ad" banner appears at the bottom.
+1. Open the app and wait a few seconds on Home. A test banner appears at the bottom.
 2. Open a level. The banner is at the bottom, and the three buttons sit above it without overlapping.
 3. Solve the level. The solved card sits above the banner.
 
@@ -64,11 +68,11 @@ How every ad in **Shadow Pattern Matcher** behaves, where to find it, and how to
 
 Config: `interstitial_taps_min`, `interstitial_taps_max` (both `0` = off).
 
-**Every 3 levels:** solving 3 levels and tapping **Next level** on the third shows an interstitial before the next level opens. Only "Next level" counts; leaving through "All levels" or the pause menu doesn't. Config: `interstitial_every_n_levels` (`0` = off).
+**Every 2 levels:** solving 2 levels and tapping **Next level** on the second shows an interstitial before the next level opens. Only "Next level" counts; leaving through "All levels" or the pause menu doesn't. Config: `interstitial_every_n_levels` (`0` = off).
 
-## 3. Paid hints (interstitial) and Level skip (rewarded)
+## 3. Paid hints and Level skip (rewarded)
 
-### Hints → interstitial
+### Hints → rewarded
 
 **Where:** the game screen. There are two hint buttons, and each has **3 free uses per level**:
 
@@ -80,17 +84,17 @@ Config: `interstitial_taps_min`, `interstitial_taps_max` (both `0` = off).
 **Behaviour:**
 - While free uses remain, **no ad is ever shown**.
 - Once a button's free uses are gone, its icon changes to ▶. The bottom label reads **"Watch ad"**.
-- Tapping ▶ pauses the game timer and shows an **interstitial**. If none is ready, the app tries to load one for up to 8 seconds.
-- **When the ad is closed**, the hint is given and no bulb is used.
+- Tapping ▶ pauses the game timer and plays a **rewarded video**. If none is ready, the app tries to load one for up to 8 seconds.
+- **Watched to the end**, the hint is given and no bulb is used. Closed early: no hint.
 - **No ad available** (offline, no fill): a "No ad right now" message appears, and the button stays active so you can retry.
 - While an ad is loading or showing, the hint buttons can't be tapped again.
 - Stars for a level equal the bulbs left (minimum 1). Ghost hints never cost a bulb.
 
 **Test:**
 1. Open a level. Tap 💡 three times. Each tap turns the sculpture and darkens one bulb. **No ad.**
-2. Tap 💡 a fourth time. An interstitial appears. Close it. The sculpture turns, and the bulbs stay dark.
+2. Tap 💡 a fourth time. A rewarded video plays. Watch it to the end. The sculpture turns, and the bulbs stay dark.
 3. Tap 👁 Hint three times (wait for each ghost to fade). The label counts down, then shows "Watch ad".
-4. Tap "Watch ad", close the interstitial. The ghost appears.
+4. Tap "Watch ad" and watch the video to the end. The ghost appears.
 5. Turn on airplane mode, then tap ▶. After a few seconds, "No ad right now" appears.
 
 ### Level skip → rewarded
@@ -110,13 +114,13 @@ Config: `interstitial_taps_min`, `interstitial_taps_max` (both `0` = off).
 3. Tap Skip → **Watch video**, close early. You stay on the same level.
 4. Open the skipped level and solve it. Its tile now shows bulbs.
 
-## 4. Rewarded interstitial ("Earn all 3 bulbs")
+## 4. Rewarded bonus ("Earn all 3 bulbs")
 
 **Where:** the "level solved" card.
 
 **Behaviour:**
 - Offered only when the level was solved with **fewer than 3 bulbs**, and only when an ad is already loaded.
-- A box appears near the top of the screen, above the card: *"Earn all 3 bulbs — Watch a short ad to light every bulb for this level. Starting in 5…"* with a **No thanks** link. The card's buttons stay usable while it counts down. This intro screen is required by AdMob.
+- A box appears near the top of the screen, above the card: *"Earn all 3 bulbs — Watch a short ad to light every bulb for this level. Starting in 5…"* with a **No thanks** link. The card's buttons stay usable while it counts down. It uses the same rewarded ad unit as Skip.
 - After the 5-second countdown, the ad plays automatically.
 - **Watch to the end:** the card shows 3 bulbs, and the level is saved with 3 stars (check the level list).
 - **No thanks**, closing early, or tapping "Next level" during the countdown: no ad and no reward.
@@ -128,43 +132,36 @@ Config: `interstitial_taps_min`, `interstitial_taps_max` (both `0` = off).
 3. Solve another level using 💡, then tap **No thanks**. The box disappears and no ad plays.
 4. Solve a level **without** using 💡. **No** offer appears.
 
-## 5. Native advanced
+## 5. Medium rectangle
 
 **Where:** Home → **Play** → "Choose a gallery", as a card between **Medium** and **Hard**.
 
-**Behaviour:** styled like the gallery cards, with an **"Ad"** badge in its top-left corner, an icon, a headline, a description and a button. If it doesn't load, nothing is shown, with no empty gap.
+**Behaviour:** a 300×250 Unity banner in a paper card with an **"Ad"** badge. If it doesn't load, nothing is shown, with no empty gap, and it tries again after 30 seconds.
 
-**Test:**
-1. Open Choose a gallery and wait a moment. The ad card appears between Medium and Hard, with an "Ad" badge.
-2. Tap its button. The advertiser page opens.
-
-## 6. App open
+## 6. Interstitial on return
 
 **Where:** full screen, when the player comes back to the app.
 
 **Behaviour:**
 - Shown when the app returns from the **background** (switch to another app or the home screen, then come back).
-- **Not** shown on a fresh launch, since the intro plays then.
-- At most once every **240 minutes (4 hours)**.
-- Not shown right after another full-screen ad closes.
-- Not shown when the player returns after tapping an ad (store page, browser) or a link inside the app (Privacy Policy, Support…).
-- An app open ad loaded more than 4 hours ago is replaced with a fresh one instead of being shown.
+- **Not** shown on a fresh launch, over a level in play, or right after another full-screen ad.
+- At most once every **240 minutes (4 hours)**. Config: `return_interstitial_cooldown_minutes` (`0` = off).
+- Not shown when the player returns after tapping an ad or a link inside the app (Privacy Policy, Support…).
 
 **Test:**
-1. Open the app and wait about 10 seconds. Go to the phone's home screen, then reopen the app. The app open ad appears.
-2. Repeat right away. **No** ad, because of the 4-hour cooldown.
-3. To test again sooner, set `app_open_cooldown_minutes` to `0` in `ads.json`, wait about 5 minutes, then fully close and reopen the app.
+1. Open the app, wait about 10 seconds on Home. Go to the phone's home screen, then reopen the app. The interstitial appears.
+2. Repeat right away. **No** ad, because of the cooldown.
 
 ---
 
 ## Turning ads off
 
-| Test | Change in `ads.json` | Expected (after fully reopening the app) |
+| Test | Change in `unity-ads.json` | Expected (after fully reopening the app) |
 |---|---|---|
 | All ads off | `"show_ads": false` | No ads anywhere. No banner space. Hint buttons stop after their 3 free uses (shown disabled) and never offer a video. |
 | One format off | Delete that format's `…_ad_unit_id` (and its `ios` copy) | Only that format disappears. |
 | Offline at launch | Airplane mode, then fully reopen the app | Same as all ads off for that session. |
-| Broken config | Invalid JSON in `ads.json` | Same as all ads off. The app must not crash. |
+| Broken config | Invalid JSON in `unity-ads.json` | Same as all ads off. The app must not crash. |
 
 Remember: GitHub can take up to 5 minutes to serve a changed file.
 
@@ -183,6 +180,6 @@ Please include:
 - the screen and the exact steps;
 - what you expected, and what happened;
 - a screenshot or screen recording;
-- whether the device was online, and whether `ads.json` was changed in the last 5 minutes.
+- whether the device was online, and whether `unity-ads.json` was changed in the last 5 minutes.
 
 Developers can see `[ads]` lines in the Metro console of a development build: config on/off, SDK initialized, and each ad loaded or failed.

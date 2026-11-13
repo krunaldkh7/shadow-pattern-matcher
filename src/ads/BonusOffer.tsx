@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { FONT, INK } from '../ui/theme';
-import { showRewardedInterstitial } from './googleAds';
+import { showRewarded } from './unityAds';
 
 const COUNTDOWN_S = 5;
 
@@ -14,8 +14,8 @@ interface Props {
 }
 
 /**
- * The intro screen AdMob requires before a rewarded interstitial: it states
- * the reward, counts down, and lets the player opt out. Only when the
+ * Intro before the bonus video: it states the reward, counts down, and lets
+ * the player opt out, so the ad never starts without warning. Only when the
  * countdown finishes does the ad play.
  */
 export function BonusOffer({ onEarned, onDone }: Props) {
@@ -26,7 +26,7 @@ export function BonusOffer({ onEarned, onDone }: Props) {
     if (left <= 0) {
       if (finished.current) return;
       finished.current = true;
-      showRewardedInterstitial().then((result) => {
+      showRewarded().then((result) => {
         if (result === 'earned') onEarned();
         onDone();
       });

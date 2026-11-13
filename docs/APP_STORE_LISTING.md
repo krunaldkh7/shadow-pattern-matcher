@@ -85,7 +85,7 @@ Answer **Yes, we collect data**, then declare:
 - Contact: Krunal Dudhagara, krunaldudhagara7777@gmail.com, your phone number
 - Notes for the reviewer:
 
-> No login is needed. Drag with one finger to rotate the wire and twist with two fingers; when the shadow matches the dotted outline the level is solved. Ads are served by Google AdMob and the app asks for tracking permission (ATT) before the first ad. The leaderboard (trophy icon on Home) asks for a display name only and signs in anonymously with Firebase.
+> No login is needed. Drag with one finger to rotate the wire and twist with two fingers; when the shadow matches the dotted outline the level is solved. Ads are served by Unity Ads (Unity LevelPlay) and the app asks for tracking permission (ATT) before the first ad. The leaderboard (trophy icon on Home) asks for a display name only and signs in anonymously with Firebase.
 
 ## Export compliance
 

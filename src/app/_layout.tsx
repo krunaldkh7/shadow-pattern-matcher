@@ -14,7 +14,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AdLoadingVeil } from '../ads/AdLoadingVeil';
 import { trackScreen } from '../analytics/analytics';
-import { startAds } from '../ads/googleAds';
+import { startAds } from '../ads/unityAds';
 import { progress } from '../game/progress';
 import { startLeaderboardSync } from '../leaderboard/leaderboard';
 import { CrashGuard } from '../ui/CrashGuard';

@@ -2,7 +2,7 @@ import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { Alert, Linking, StyleSheet, Switch, Text, View } from 'react-native';
 import { progress, useProgress } from '../game/progress';
-import { showPrivacyOptions, skipNextAppOpen, usePrivacyOptionsRequired } from '../ads/googleAds';
+import { showPrivacyOptions, skipNextReturnAd, usePrivacyOptionsRequired } from '../ads/unityAds';
 import { LEGAL_LINKS } from '../legal';
 import { MenuButton, MenuScreen } from '../ui/components/MenuKit';
 import { FONT, INK } from '../ui/theme';
@@ -62,7 +62,7 @@ export default function Settings() {
 
 /** Open an external link; a missing browser/mail app just shows a note instead of throwing. */
 function open(url: string) {
-  skipNextAppOpen();
+  skipNextReturnAd();
   Linking.openURL(url).catch(() => Alert.alert('Could not open link', url));
 }
 
