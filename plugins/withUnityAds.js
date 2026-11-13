@@ -7,7 +7,9 @@ const path = require('path');
  * unity-levelplay-mediation ships the LevelPlay SDK but no config plugin and
  * no network adapters, so this adds:
  *  • the Unity Ads adapter pod (iOS) and Gradle dependency (Android),
- *  • the SKAdNetwork IDs for LevelPlay and Unity Ads, plus SKAN postbacks,
+ *  • the SKAdNetwork IDs for LevelPlay and Unity Ads, plus SKAN postbacks
+ *    (unityAdsSkAdNetworkIds.json is Unity's official list, saved from
+ *    https://skan.mz.unity3d.com/v3/partner/skadnetworks.plist.json; refresh it now and then),
  *  • the Google advertising-ID libraries LevelPlay needs on Android.
  * Bump the adapter versions together with the plugin, following
  * https://docs.unity.com/en-us/grow/levelplay/sdk/react/mediation-networks
@@ -21,8 +23,7 @@ const ANDROID_DEPS = [
 ];
 const SKAD_NETWORK_IDS = [
   'su67r6k2v3.skadnetwork', // LevelPlay
-  '4dzt52r2t5.skadnetwork', // Unity Ads
-  'bvpn9ufa9b.skadnetwork', // Unity Ads
+  ...require('./unityAdsSkAdNetworkIds.json'),
 ];
 const MARKER = '# withUnityAds';
 

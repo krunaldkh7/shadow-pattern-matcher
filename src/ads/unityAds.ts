@@ -50,8 +50,10 @@ function onFullscreenClosed() {
 
 /** How long a paid hint or skip waits for its video to finish loading. */
 const LOAD_WAIT_MS = 8000;
-/** After a failed load, try again this much later. */
-const RETRY_MS = 30_000;
+/** After a failed load, wait this long before retrying, doubling each time (5 s, 10 s, 20 s, 40 s, then 60 s). */
+const RETRY_FIRST_MS = 5000;
+const RETRY_MAX_MS = 60_000;
+const retryDelay = (failures: number) => Math.min(RETRY_FIRST_MS * 2 ** (failures - 1), RETRY_MAX_MS);
 
 /** Wait until ready() is true (or give up after a few seconds). */
 function waitUntil(ready: () => boolean): Promise<boolean> {
@@ -74,6 +76,7 @@ export type RewardResult = 'earned' | 'skipped' | 'unavailable';
 let interstitial: import('unity-levelplay-mediation').LevelPlayInterstitialAd | null = null;
 let interstitialReady = false;
 let interstitialLoading = false;
+let interstitialFailures = 0;
 let solvedSinceLast = 0;
 let lastInterstitialAt = 0;
 
@@ -94,11 +97,15 @@ function loadInterstitial(m: AdsModule, config: AdConfig) {
     onAdLoaded: () => {
       interstitialReady = true;
       interstitialLoading = false;
+      interstitialFailures = 0;
+      log('interstitial loaded');
     },
     onAdLoadFailed: (e) => {
       interstitialLoading = false;
-      log('interstitial failed to load', e);
-      setTimeout(requestInterstitial, RETRY_MS);
+      interstitialFailures++;
+      const wait = retryDelay(interstitialFailures);
+      log('interstitial failed to load', e, `retry in ${wait / 1000}s`);
+      setTimeout(requestInterstitial, wait);
     },
     onAdDisplayed: onFullscreenOpened,
     // A click leaves the app (store page, browser); don't greet the return with another ad.
@@ -248,6 +255,7 @@ function watchAppReturn() {
 let rewarded: import('unity-levelplay-mediation').LevelPlayRewardedAd | null = null;
 let rewardedReady = false;
 let rewardedLoading = false;
+let rewardedFailures = 0;
 /** Called once when the rewarded ad on screen is closed, with whether the reward was earned. */
 let onRewardedClosed: ((earned: boolean) => void) | null = null;
 let rewardEarned = false;
@@ -280,13 +288,16 @@ function loadRewarded(m: AdsModule, config: AdConfig) {
   ad.setListener({
     onAdLoaded: () => {
       rewardedLoading = false;
+      rewardedFailures = 0;
       setRewardedReady(true);
       log('rewarded loaded');
     },
     onAdLoadFailed: (e) => {
       rewardedLoading = false;
-      log('rewarded failed to load', e);
-      setTimeout(requestRewarded, RETRY_MS);
+      rewardedFailures++;
+      const wait = retryDelay(rewardedFailures);
+      log('rewarded failed to load', e, `retry in ${wait / 1000}s`);
+      setTimeout(requestRewarded, wait);
     },
     onAdDisplayed: onFullscreenOpened,
     onAdClicked: skipNextReturnAd,
@@ -473,6 +484,9 @@ async function askTrackingPermission() {
 
 // ──────────────────────────────── startup ────────────────────────────────
 
+/** Development builds only: open LevelPlay's test suite after init, to check each network on a device. */
+const LAUNCH_TEST_SUITE = false;
+
 /** Start LevelPlay and wait for it; false if it failed. */
 function initLevelPlay(m: AdsModule, appKey: string): Promise<boolean> {
   return new Promise((resolve) => {
@@ -505,20 +519,25 @@ export async function startAds() {
     return;
   }
   // The game is not directed at children under 13 (COPPA); tell LevelPlay before init.
-  m.LevelPlayPrivacySettings.setCOPPA(false).catch(() => {});
+  await m.LevelPlayPrivacySettings.setCOPPA(false).catch(() => {});
   // Privacy consent (GDPR) first, then Apple's tracking prompt, then ads.
   await gatherConsent(m);
   await askTrackingPermission();
-  // Development builds: log adapter details so test devices can be checked in the LevelPlay dashboard.
+  // Development builds only: adapter debug logs and an integration check in the native log
+  // (look for "UnityAds" / "Adapter" lines); optionally LevelPlay's on-device test suite.
   if (__DEV__) {
-    m.LevelPlay.setAdaptersDebug(true).catch(() => {});
-    m.LevelPlay.validateIntegration().catch(() => {});
+    await m.LevelPlay.setAdaptersDebug(true).catch(() => {});
+    if (LAUNCH_TEST_SUITE) await m.LevelPlay.setMetaData('is_test_suite', ['enable']).catch(() => {});
   }
   if (!(await initLevelPlay(m, config.appKey))) {
     adConfig.set({ ...config, showAds: false });
     return;
   }
   log('SDK initialized');
+  if (__DEV__) {
+    m.LevelPlay.validateIntegration().catch(() => {});
+    if (LAUNCH_TEST_SUITE) m.LevelPlay.launchTestSuite().catch(() => {});
+  }
   adConfig.set(config);
   loadInterstitial(m, config);
   loadRewarded(m, config);
