@@ -1,11 +1,11 @@
 {
   "show_ads": true,
-  "interstitial_taps_min": 6,
-  "interstitial_taps_max": 12,
-  "interstitial_every_n_levels": 2,
-  "interstitial_start_after_level": 0,
-  "interstitial_min_interval_seconds": 0,
-  "return_interstitial_cooldown_minutes": 240,
+  "interstitial_taps_min": 20,
+  "interstitial_taps_max": 30,
+  "interstitial_every_n_levels": 3,
+  "interstitial_start_after_level": 3,
+  "interstitial_min_interval_seconds": 30,
+  "return_interstitial_cooldown_minutes": 0,
   "android": {
     "app_key": "2987746b5",
     "banner_ad_unit_id": "mjsqslhb4e9fq2t7",
