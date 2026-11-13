@@ -7,7 +7,7 @@ import { adConfig, fetchAdConfig, type AdConfig } from './adConfig';
 
 /**
  * Unity Ads through Unity LevelPlay, for every format the game uses: banner
- * (bottom strip and medium rectangle), interstitial (also on returning to the
+ * (bottom strip, and a card inside the gallery list), interstitial (also on returning to the
  * app) and rewarded. The native module is loaded lazily: Expo Go
  * doesn't contain it (requiring it there throws), so ads only exist in
  * real/dev builds. Nothing here is called — not even init — unless the remote
@@ -370,14 +370,16 @@ export function bannerUnitId(config: AdConfig) {
   return config.showAds ? config.bannerUnitId : '';
 }
 
-export type BannerSize = 'banner' | 'mrec';
+/** Bottom strip, or the same banner set in a card inside a list. */
+export type BannerPlacement = 'strip' | 'card';
 
-/** The banner view and the requested size (320×50 strip or 300×250 medium rectangle), when the native module exists. */
-export function bannerComponent(kind: BannerSize) {
+/**
+ * The banner view and size, when the native module exists. Always the
+ * standard 320×50: Unity Ads doesn't fill 300×250 medium rectangles here.
+ */
+export function bannerComponent() {
   const m = ads();
-  if (!m) return null;
-  const size = kind === 'mrec' ? m.LevelPlayAdSize.MEDIUM_RECTANGLE : m.LevelPlayAdSize.BANNER;
-  return { BannerAd: m.LevelPlayBannerAdView, size };
+  return m ? { BannerAd: m.LevelPlayBannerAdView, size: m.LevelPlayAdSize.BANNER } : null;
 }
 
 // ──────────────────────────────── privacy ────────────────────────────────

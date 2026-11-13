@@ -31,7 +31,7 @@ Each platform has its own `app_key` and ad unit IDs in its `android` / `ios` blo
 | 3 | Rewarded (paid hint) | Game screen, both hint buttons | Only after a button's 3 free uses are gone, when the player taps |
 | 3b | Rewarded (level skip) | Game screen, **Skip** button | When the player chooses to skip a level |
 | 4 | Rewarded (bonus bulbs) | "Level solved" card | After a solve where bulbs were spent; 5-second countdown first |
-| 5 | Medium rectangle (300×250) | "Choose a gallery" screen, between **Medium** and **Hard** | Always, once loaded |
+| 5 | Banner card | "Choose a gallery" screen, between **Medium** and **Hard** | Always, once loaded |
 | 6 | Interstitial (return) | Full screen | When returning to the app from the background, at most once every 4 hours |
 
 ---
@@ -132,11 +132,11 @@ Config: `interstitial_taps_min`, `interstitial_taps_max` (both `0` = off).
 3. Solve another level using 💡, then tap **No thanks**. The box disappears and no ad plays.
 4. Solve a level **without** using 💡. **No** offer appears.
 
-## 5. Medium rectangle
+## 5. Banner card
 
 **Where:** Home → **Play** → "Choose a gallery", as a card between **Medium** and **Hard**.
 
-**Behaviour:** a 300×250 Unity banner in a paper card with an **"Ad"** badge. If it doesn't load, nothing is shown, with no empty gap, and it tries again after 30 seconds.
+**Behaviour:** a standard 320×50 Unity banner in a paper card with an **"Ad"** badge. If it doesn't load, nothing is shown, with no empty gap, (not even a gap between the cards), and it tries again after 30 seconds.
 
 ## 6. Interstitial on return
 

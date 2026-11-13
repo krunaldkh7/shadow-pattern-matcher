@@ -22,7 +22,7 @@ export default function Tiers() {
           const done = s.solved === s.total;
           return (
             <Fragment key={tier.id}>
-            {i === 2 && <AdBanner size="mrec" />}
+            {i === 2 && <AdBanner placement="card" />}
             <Animated.View entering={FadeInDown.duration(380).delay(60 * i)}>
               <Pressable
                 accessibilityRole="button"
