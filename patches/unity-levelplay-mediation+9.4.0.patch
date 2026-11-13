@@ -1,0 +1,12 @@
+diff --git a/node_modules/unity-levelplay-mediation/ios/LevelPlayNativeAdView.h b/node_modules/unity-levelplay-mediation/ios/LevelPlayNativeAdView.h
+index 566a547..acfe060 100644
+--- a/node_modules/unity-levelplay-mediation/ios/LevelPlayNativeAdView.h
++++ b/node_modules/unity-levelplay-mediation/ios/LevelPlayNativeAdView.h
+@@ -3,7 +3,6 @@
+ #import <React/RCTUIManager.h>
+ #import <React/RCTComponent.h>
+ #import <React/RCTUIManagerUtils.h>
+-#import <React/RCTImageView.h>
+ #import <React/RCTBridgeModule.h>
+ #import <IronSource/IronSource.h>
+ #import "LevelPlayNativeAdViewManager.h"
