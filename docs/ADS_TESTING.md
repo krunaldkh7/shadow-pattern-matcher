@@ -6,16 +6,16 @@ How every ad in **Shadow Pattern Matcher** behaves, where to find it, and how to
 
 **Which build to use.** Ads only appear in a real app build (an APK on Android, or the installed app on iPhone). **Expo Go never shows ads.** That is by design and is not a bug.
 
-**Ads come from Unity Ads** (through Unity LevelPlay). There are no built-in test IDs, so **register every test phone as a test device** first: Unity LevelPlay dashboard → **Settings → Test devices** (add the device's advertising ID), or turn on **Test mode** for the app in the Unity Ads dashboard. Test ads are labelled as test ads and are safe to tap. Never tap real ads on your own device: Unity can suspend the account for it.
+**Ads come from Google AdMob.** Development builds always use Google's test ads, so they are safe to tap. A release build (TestFlight / App Store) shows real ads: **never tap real ads on your own device**, because AdMob can suspend the account for it. To see real-looking ads safely on a release build, add the phone as a test device: AdMob → **Settings → Test devices** (the device's advertising ID).
 
-**Privacy prompts.** On a phone set to a European time zone, the first launch with ads on asks "Personalised ads?" (Allow / Don't allow); the answer can be changed in Settings → **Ad privacy choices**. On iPhone the Apple tracking prompt follows.
+**Privacy prompts.** In the EEA, UK and Switzerland, the first launch shows Google's consent form (set up in AdMob → Privacy & messaging); the answer can be changed in Settings → **Ad privacy choices**. On iPhone the Apple tracking prompt follows.
 
 **Where the settings come from.** The app downloads its ad settings from GitHub each time it **starts**:
-`https://github.com/krunaldkh7/shadow-pattern-matcher-config` → `unity-ads.json`
+`https://github.com/krunaldkh7/shadow-pattern-matcher-config` → `admob-ads.json`
 
-Each platform has its own `app_key` and ad unit IDs in its `android` / `ios` block (from the LevelPlay dashboard). Ads stay off until `show_ads` is `true` **and** the platform has an `app_key` and at least one unit ID. (`ads.json` in the same repo is read only by older builds that used AdMob.)
+Each platform has its own AdMob ad unit IDs in its `ios` / `android` block. Ads stay off until `show_ads` is `true` **and** the platform has at least one unit ID. (`unity-ads.json` is read only by version 1.0.1–1.0.2, which used Unity Ads; `ads.json` only by older builds on the previous AdMob account.)
 
-- A change to `unity-ads.json` applies the next time the app is **fully closed and reopened**, not while it is running.
+- A change to `admob-ads.json` applies the next time the app is **fully closed and reopened**, not while it is running.
 - GitHub can take up to **5 minutes** to serve the new file.
 - If the file can't be downloaded (offline, timeout after 6 seconds, broken JSON), **all ads are off** for that session. The game still works normally.
 
@@ -136,7 +136,7 @@ Config: `interstitial_taps_min`, `interstitial_taps_max` (both `0` = off).
 
 **Where:** Home → **Play** → "Choose a gallery", as a card between **Medium** and **Hard**.
 
-**Behaviour:** a standard 320×50 Unity banner in a paper card with an **"Ad"** badge. If it doesn't load, nothing is shown, with no empty gap, (not even a gap between the cards), and it tries again after 30 seconds.
+**Behaviour:** a standard 320×50 AdMob banner in a paper card with an **"Ad"** badge. If it doesn't load, nothing is shown, with no empty gap, (not even a gap between the cards), and it tries again after 30 seconds.
 
 ## 6. Interstitial on return
 
@@ -156,12 +156,12 @@ Config: `interstitial_taps_min`, `interstitial_taps_max` (both `0` = off).
 
 ## Turning ads off
 
-| Test | Change in `unity-ads.json` | Expected (after fully reopening the app) |
+| Test | Change in `admob-ads.json` | Expected (after fully reopening the app) |
 |---|---|---|
 | All ads off | `"show_ads": false` | No ads anywhere. No banner space. Hint buttons stop after their 3 free uses (shown disabled) and never offer a video. |
 | One format off | Delete that format's `…_ad_unit_id` (and its `ios` copy) | Only that format disappears. |
 | Offline at launch | Airplane mode, then fully reopen the app | Same as all ads off for that session. |
-| Broken config | Invalid JSON in `unity-ads.json` | Same as all ads off. The app must not crash. |
+| Broken config | Invalid JSON in `admob-ads.json` | Same as all ads off. The app must not crash. |
 
 Remember: GitHub can take up to 5 minutes to serve a changed file.
 
@@ -180,6 +180,6 @@ Please include:
 - the screen and the exact steps;
 - what you expected, and what happened;
 - a screenshot or screen recording;
-- whether the device was online, and whether `unity-ads.json` was changed in the last 5 minutes.
+- whether the device was online, and whether `admob-ads.json` was changed in the last 5 minutes.
 
 Developers can see `[ads]` lines in the Metro console of a development build: config on/off, SDK initialized, and each ad loaded or failed.

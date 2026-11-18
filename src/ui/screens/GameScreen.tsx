@@ -11,8 +11,8 @@ import {
   setInGame,
   showRewarded,
   useRewardedAvailable,
-  useRewardedReady,
-} from '../../ads/unityAds';
+  useBonusAdReady,
+} from '../../ads/ads';
 import { COLORS } from '../../game/constants';
 import { GameEngine } from '../../game/GameEngine';
 import { customLevels, toShape, type CustomLevel } from '../../game/customLevels';
@@ -54,7 +54,7 @@ export function GameScreen({ startLevel, custom }: { startLevel: number; custom?
     }, []),
   );
   // Rewarded bonus on the solved card: offered once per solve when bulbs were spent.
-  const bonusReady = useRewardedReady();
+  const bonusReady = useBonusAdReady();
   const [bonus, setBonus] = useState<{ level: number; state: 'offer' | 'done' | 'earned' }>({ level: 0, state: 'done' });
   const bonusForThis = bonus.level === ui.levelNumber ? bonus.state : null;
   const playing = ui.status === 'playing';

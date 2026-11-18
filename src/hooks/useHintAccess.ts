@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
-import { showRewarded, useRewardedAvailable } from '../ads/unityAds';
+import { showRewarded, useRewardedAvailable } from '../ads/ads';
 import { track } from '../analytics/analytics';
 import type { GameEngine, UISnapshot } from '../game/GameEngine';
 

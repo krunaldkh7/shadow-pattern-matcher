@@ -2,7 +2,7 @@
   "expo": {
     "name": "Shadow Pattern Matcher",
     "slug": "shadow-pattern-matcher",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -62,7 +62,15 @@
           }
         }
       ],
-      "./plugins/withUnityAds",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "iosAppId": "ca-app-pub-3256039627815671~9223051107",
+          "androidAppId": "ca-app-pub-3940256099942544~3347511713",
+          "userTrackingUsageDescription": "This lets us show you ads that are more relevant to you. The game works the same either way."
+        }
+      ],
+      "./plugins/withAdMob",
       "@react-native-firebase/app",
       "@react-native-firebase/analytics",
       [
@@ -83,12 +91,12 @@
       "eas": {
         "projectId": "b9906c95-fae9-4e0e-ae79-065c6be972df"
       },
-      "adsConfigUrl": "https://raw.githubusercontent.com/krunaldkh7/shadow-pattern-matcher-config/main/unity-ads.json",
+      "adsConfigUrl": "https://raw.githubusercontent.com/krunaldkh7/shadow-pattern-matcher-config/main/admob-ads.json",
       "firebase": {
-        "apiKey": "AIzaSyAQOsmXZ6fbnIeWBHLpSyVHep5JWZRupfI",
-        "authDomain": "shadow-pattern.firebaseapp.com",
-        "projectId": "shadow-pattern",
-        "appId": "1:438861747521:web:ca42ab57d0b3426e793dc0"
+        "apiKey": "AIzaSyCySyzKbFQ3x-uBcNWFFx7vW5aKu6vlcnU",
+        "authDomain": "shadow-pattern-matcher.firebaseapp.com",
+        "projectId": "shadow-pattern-matcher",
+        "appId": "1:300715645978:web:4d9678b4b2b45d2e24c5a3"
       }
     },
     "owner": "krunaldkh7"

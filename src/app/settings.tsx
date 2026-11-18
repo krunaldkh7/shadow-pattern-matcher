@@ -2,7 +2,7 @@ import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { Alert, Linking, StyleSheet, Switch, Text, View } from 'react-native';
 import { progress, useProgress } from '../game/progress';
-import { showPrivacyOptions, skipNextReturnAd, usePrivacyOptionsRequired } from '../ads/unityAds';
+import { showPrivacyOptions, skipNextReturnAd, usePrivacyOptionsRequired } from '../ads/ads';
 import { LEGAL_LINKS } from '../legal';
 import { MenuButton, MenuScreen } from '../ui/components/MenuKit';
 import { FONT, INK } from '../ui/theme';

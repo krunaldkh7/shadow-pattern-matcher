@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { FONT, INK } from '../ui/theme';
-import { showRewarded } from './unityAds';
+import { showBonusAd } from './ads';
 
 const COUNTDOWN_S = 5;
 
@@ -26,7 +26,7 @@ export function BonusOffer({ onEarned, onDone }: Props) {
     if (left <= 0) {
       if (finished.current) return;
       finished.current = true;
-      showRewarded().then((result) => {
+      showBonusAd().then((result) => {
         if (result === 'earned') onEarned();
         onDone();
       });

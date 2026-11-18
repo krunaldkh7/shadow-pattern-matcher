@@ -1,0 +1,18 @@
+{
+  "show_ads": true,
+  "interstitial_taps_min": 20,
+  "interstitial_taps_max": 30,
+  "interstitial_every_n_levels": 3,
+  "interstitial_start_after_level": 3,
+  "interstitial_min_interval_seconds": 30,
+  "return_interstitial_cooldown_minutes": 0,
+  "app_open_cooldown_minutes": 240,
+  "ios": {
+    "banner_ad_unit_id": "ca-app-pub-3256039627815671/4681170864",
+    "interstitial_ad_unit_id": "ca-app-pub-3256039627815671/8428844181",
+    "rewarded_ad_unit_id": "ca-app-pub-3256039627815671/2065394628",
+    "rewarded_interstitial_ad_unit_id": "ca-app-pub-3256039627815671/4234769106",
+    "native_ad_unit_id": "ca-app-pub-3256039627815671/4753643854",
+    "app_open_ad_unit_id": "ca-app-pub-3256039627815671/6669360758"
+  }
+}

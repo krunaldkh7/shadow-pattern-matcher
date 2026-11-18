@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyAiupKh9BKtX3DENCjphPmGPAyC-4l4spg</string>
+	<string>AIzaSyDSFh8vG_63g6O9FOngU51h4hCKDyesSYg</string>
 	<key>GCM_SENDER_ID</key>
-	<string>438861747521</string>
+	<string>300715645978</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.krunal.shadowpattern</string>
 	<key>PROJECT_ID</key>
-	<string>shadow-pattern</string>
+	<string>shadow-pattern-matcher</string>
 	<key>STORAGE_BUCKET</key>
-	<string>shadow-pattern.firebasestorage.app</string>
+	<string>shadow-pattern-matcher.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:438861747521:ios:dad336b7a83d63e8793dc0</string>
+	<string>1:300715645978:ios:79e4aa4ef1bd46b724c5a3</string>
 </dict>
 </plist>

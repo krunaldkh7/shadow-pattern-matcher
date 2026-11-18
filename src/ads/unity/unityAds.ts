@@ -2,8 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { useSyncExternalStore } from 'react';
 import { Alert, AppState, Platform } from 'react-native';
-import { progress } from '../game/progress';
-import { adConfig, fetchAdConfig, type AdConfig } from './adConfig';
+import { progress } from '../../game/progress';
+import { adConfig, fetchAdConfig, type AdConfig } from '../adConfig';
 
 /**
  * Unity Ads through Unity LevelPlay, for every format the game uses: banner

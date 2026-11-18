@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { Fragment } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { AdBanner } from '../ads/AdBanner';
+import { AdNativeCard } from '../ads/AdNativeCard';
 import { useProgress } from '../game/progress';
 import { TIERS } from '../game/tiers';
 import { MenuScreen } from '../ui/components/MenuKit';
@@ -22,7 +22,7 @@ export default function Tiers() {
           const done = s.solved === s.total;
           return (
             <Fragment key={tier.id}>
-            {i === 2 && <AdBanner placement="card" />}
+            {i === 2 && <AdNativeCard />}
             <Animated.View entering={FadeInDown.duration(380).delay(60 * i)}>
               <Pressable
                 accessibilityRole="button"
