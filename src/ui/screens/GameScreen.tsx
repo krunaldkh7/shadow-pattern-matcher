@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AdBanner } from '../../ads/AdBanner';
 import { track } from '../../analytics/analytics';
 import { BonusOffer } from '../../ads/BonusOffer';
+import { maybeAskForReview } from '../../review';
 import {
   onLevelSolvedNavigate,
   setInGame,
@@ -232,7 +233,8 @@ export function GameScreen({ startLevel, custom }: { startLevel: number; custom?
           bottomInset={insets.bottom + bannerHeight}
           isLast={engine.isLastLevel}
           onNext={() => {
-            onLevelSolvedNavigate();
+            // The rating prompt and a full-screen ad never come on the same tap.
+            if (!maybeAskForReview()) onLevelSolvedNavigate();
             engine.nextLevel();
           }}
           onReplay={() => engine.replayLevel()}
